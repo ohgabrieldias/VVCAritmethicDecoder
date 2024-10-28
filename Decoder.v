@@ -4,31 +4,23 @@ module Decoder(
     input clk,               // Clock
     input reset,             // Reset assíncrono
     input bypass,            // Flag para selecionar o módulo de saída
-    output bin               // Saída do bit decodificado do BinDecoderBase
+    output reg bin,               // Saída do bit decodificado do BinDecoderBase
+    output reg [6:0] clock_cycle_count // Contador de ciclos de clock
 );
 
-    // Declarando os sinais como registradores globais com os tamanhos corretos
     reg signed [3:0] m_bitsNeeded;  // Bits necessários para leitura de byte (int3)
     reg [31:0] m_range;              // Intervalo global (uint32)
     reg [31:0] m_value;              // Valor global para decodificação (uint32)
 
-    // Instanciação do módulo BinDecoderBase com os sinais globais
-    wire bin_out; // Saída do módulo BinDecoderBase
-
-    wire [3:0] new_bitsNeeded;       // Saída atualizada para m_bitsNeeded
-    wire [31:0] new_range;           // Saída atualizada para m_range
-    wire [31:0] new_value;           // Saída atualizada para m_value
+    wire bin_out_binEP; // Saída do módulo BinDecoderBase
+    wire [3:0] m_bitsNeeded_out_binEP;       // Saída atualizada para m_bitsNeeded
+    wire [31:0] m_value_out_binEP;           // Saída atualizada para m_value
 
     wire request_byte;          // Sinal para incrementar a requisição
-
     reg [7:0] byteLido = 8'b0;       // Byte lido do arquivo
-    reg flag_bypass = 0;
-    
     wire [8:0] data;
     wire data_ready;
 
-
-    
     // Instanciação do módulo FileReader
     FileReader uut (
         .clk(clk),
@@ -38,26 +30,26 @@ module Decoder(
     );
 
     DecodeBinEP decodeBinEP (
-        .m_bitsNeeded(m_bitsNeeded),
+        .m_bitsNeeded_in(m_bitsNeeded),
         .m_range(m_range),
-        .m_value(m_value),
-        .new_bitsNeeded(new_bitsNeeded),
-        .new_range(new_range),
-        .new_value(new_value),
-        .bin(bin_out),
-        .enable(~bypass),
+        .m_value_in(m_value),
+        .m_bitsNeeded_out(m_bitsNeeded_out_binEP),
+        .m_value_out(m_value_out_binEP),
+        .bin_out(bin_out_binEP),
         .request_byte(request_byte),
-        .data(byteLido)
+        .read_byte(byteLido)
     );
 
-    assign bin = bin_out; // Conectar a saída do decodificador binário à saída do Decoder
-
+    // assign bin = bin_out_binEP; // Conectar a saída do decodificador binário à saída do Decoder
 
     always @data begin
         if (request_byte) begin
             byteLido = data[7:0];
-            flag_bypass = data[8];
         end
+    end
+
+    always @bypass begin
+        clock_cycle_count <= 0;
     end
 
     // Inicializações específicas no reset
@@ -66,13 +58,17 @@ module Decoder(
             m_range <= 32'd289;          // Inicializa m_range com 289
             m_bitsNeeded <= -4'd8;      // Inicializa m_bitsNeeded com -8
             m_value <= 32'd36049;        // Inicializa m_value com 36049
+            clock_cycle_count <= 0;        // Reseta o contador de ciclos de clock
+            bin <= 1'b0;                // Inicializa bin como 0
+
         end else begin
             // Atualizações apenas quando não estiver em bypass
             if (~bypass) begin
-                m_bitsNeeded <= new_bitsNeeded; // Atualiza com o novo valor
-                m_range <= new_range;           // Atualiza com o novo valor
-                m_value <= new_value;           // Atualiza com o novo valor
+                m_bitsNeeded <= m_bitsNeeded_out_binEP; // Atualiza com o novo valor
+                m_value <= m_value_out_binEP;           // Atualiza com o novo valor
+                bin <= bin_out_binEP;
             end
+            clock_cycle_count <= clock_cycle_count + 1; // Incrementa o contador a cada ciclo de clock
         end
     end
 endmodule

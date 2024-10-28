@@ -6,7 +6,7 @@ module DecodeBinsEP (
   input [7:0] read_byte,                // Byte lido externamente (simula m_bitstream->readByte())
   output reg [31:0] bins_out,
   output reg [31:0] m_value_out,
-  output reg signed [31:0] m_bitsNeeded_out  // Saída com sinal
+  output reg signed [3:0] m_bitsNeeded_out  // Saída com sinal
 );
 
   reg [31:0] m_value;

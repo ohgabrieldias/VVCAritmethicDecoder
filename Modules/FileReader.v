@@ -9,7 +9,7 @@ module FileReader(
 
     initial begin
         // Abre o arquivo no modo leitura binária
-        file = $fopen("D:/Dropbox/GraduacaoEC/Cadeiras/2024.2/TCC-I/VVC/AritmethicDecoder/data.bin", "rb");
+        file = $fopen("D:/Dropbox/GraduacaoEC/Cadeiras/2024.2/TCC-I/VVC/VVCAritmethicDecoder/data.bin", "rb");
         if (file == 0) begin
             $display("Erro ao abrir o arquivo.");
             $finish;

@@ -7,7 +7,7 @@ module tb_control;
     reg [7:0] data;    // Dados (7 bits restantes)
     reg reset;             // Reset signal
     wire [6:0] uut_output; // Saída do uut
-    wire bin_out; // Saída do módulo BinDecoderBase
+    wire [1:0] bin_out; // Saída do módulo BinDecoderBase
     wire request_byte; // Sinal para incrementar a requisição
     integer file;      // Handle do arquivo
     integer r;         // Variável para leitura do arquivo

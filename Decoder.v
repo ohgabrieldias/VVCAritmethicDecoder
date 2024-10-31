@@ -4,7 +4,7 @@ module Decoder(
     input bypass,            // Flag para selecionar o módulo de saída
     input [7:0] data,        // Byte solicitado
     input n_bin,             // Número de bins a serem decodificados
-    output reg bin,               // Saída do bit decodificado do BinDecoderBase
+    output reg [1:0] bin,               // Saída do bit decodificado do BinDecoderBase
     output reg [6:0] clock_cycle_count, // Contador de ciclos de clock
     output wire request_byte         // Sinal para incrementar a requisição
 );
@@ -13,7 +13,7 @@ module Decoder(
     reg [31:0] m_range;              // Intervalo global (uint32)
     reg [31:0] m_value;              // Valor global para decodificação (uint32)
 
-    wire bin_out_binEP; // Saída do módulo BinDecoderBase
+    wire [1:0] bin_out_binEP; // Saída do módulo BinDecoderBase
     
     wire [31:0] m_value_out_binEP;           // Saída atualizada para m_value
     wire [31:0] m_value_out;           // Saída atualizada para m_value

@@ -1,5 +1,5 @@
 module unsigned_subtractor
-#(parameter WIDTH=32)
+#(parameter WIDTH=17)
 (
 	input [WIDTH-1:0] a,
 	input [WIDTH-1:0] b,

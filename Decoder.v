@@ -10,17 +10,17 @@ module Decoder(
 );
 
     reg signed [3:0] m_bitsNeeded;  // Bits necessários para leitura de byte (int3)
-    reg [31:0] m_range;              // Intervalo global (uint32)
-    reg [31:0] m_value;              // Valor global para decodificação (uint32)
+    reg [8:0] m_range;              // Intervalo global (uint32)
+    reg [15:0] m_value;              // Valor global para decodificação (uint32)
 
     wire [1:0] bin_out_binEP; // Saída do módulo BinDecoderBase
     
-    wire [31:0] m_value_out_binEP;           // Saída atualizada para m_value
-    wire [31:0] m_value_out;           // Saída atualizada para m_value
+    wire [15:0] m_value_out_binEP;           // Saída atualizada para m_value
+    wire [15:0] m_value_out;           // Saída atualizada para m_value
 
     wire [3:0] m_bitsNeeded_out; 
 
-    wire [31:0] saida_adderData;           // Saída atualizada para m_value
+    wire [15:0] saida_adderData;           // Saída atualizada para m_value
 
     wire signed [3:0] saida_adder1;
    
@@ -36,7 +36,7 @@ module Decoder(
         .out_comp(request_byte)
     );
 
-    adder_32_8 adderData (
+    adder_16_8 adderData (
         .a(m_value_out_binEP),
         .b(data),
         .result(saida_adderData)
@@ -71,9 +71,9 @@ module Decoder(
     // Inicializações específicas no reset
     always @(posedge clk or posedge reset) begin
         if (reset) begin
-            m_range <= 32'd289;          // Inicializa m_range com 289
+            m_range <= 9'd289;          // Inicializa m_range com 289
             m_bitsNeeded <= -4'd8;      // Inicializa m_bitsNeeded com -8
-            m_value <= 32'd36049;        // Inicializa m_value com 36049
+            m_value <= 16'd36049;        // Inicializa m_value com 36049
             clock_cycle_count <= 0;        // Reseta o contador de ciclos de clock
             bin <= 1'b1;                // Inicializa bin como 1
 

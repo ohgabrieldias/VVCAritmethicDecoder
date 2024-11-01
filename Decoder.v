@@ -15,18 +15,19 @@ module Decoder(
 
     wire [1:0] bin_out_binEP; // Saída do módulo BinDecoderBase
     
-    wire [15:0] m_value_out_binEP;           // Saída atualizada para m_value
-    wire [15:0] m_value_out;           // Saída atualizada para m_value
+    wire [15:0] m_value_out;              // Saída atualizada para m_value
+    wire [16:0] m_value_two;           // Saída intermediaria shiftada << 1
+    wire [16:0] new_m_value_two;           // Saída atualizada para m_value
 
     wire [3:0] m_bitsNeeded_out; 
 
-    wire [15:0] saida_adderData;           // Saída atualizada para m_value
+    wire [16:0] saida_adderData;           // Saída atualizada para m_value
 
     wire signed [3:0] saida_adder1;
    
     adder #(4) adder1 (
         .a(m_bitsNeeded),
-        .b(4'd1),
+        .b(4'd2),
         .result(saida_adder1)
     );
 
@@ -36,20 +37,20 @@ module Decoder(
         .out_comp(request_byte)
     );
 
-    adder_16_8 adderData (
-        .a(m_value_out_binEP),
+    adder_17_8 adderData (
+        .a(m_value_two),
         .b(data),
         .result(saida_adderData)
     );
 
-    mux2to1 muxValue (
+    mux2to1 #(17) muxValue (
         .a(saida_adderData),
-        .b(m_value_out_binEP),
+        .b(m_value_two),
         .sel(request_byte),
-        .y(m_value_out)
+        .y(new_m_value_two)
     );
 
-      mux2to1 muxBits (
+      mux2to1 #(4) muxBits (
         .a(-4'd8),
         .b(saida_adder1),
         .sel(request_byte),
@@ -59,7 +60,9 @@ module Decoder(
     DecodeBinEP decodeBinEP (
         .m_range(m_range),
         .m_value_in(m_value),
-        .m_value_out(m_value_out_binEP),
+        .new_m_value_in(new_m_value_two),
+        .m_value_out(m_value_out),
+        .m_value_two_out(m_value_two),
         .bin_out(bin_out_binEP),
         .n_bin(n_bin)
     );
@@ -81,11 +84,10 @@ module Decoder(
             // Atualizações apenas quando não estiver em bypass
             if (~bypass) begin
                 m_bitsNeeded <= m_bitsNeeded_out; // Atualiza com o novo valor
-                m_value <= m_value_out_binEP;           // Atualiza com o novo valor
+                m_value <= m_value_out;           // Atualiza com o novo valor
                 bin <= bin_out_binEP;
-                //request_byte <= request_byte;
             end
-            clock_cycle_count <= clock_cycle_count + 1; // Incrementa o contador a cada ciclo de clock
+            clock_cycle_count <= clock_cycle_count + 2; // Incrementa o contador a cada ciclo de clock
         end
     end
 endmodule

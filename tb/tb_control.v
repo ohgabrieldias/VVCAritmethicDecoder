@@ -3,7 +3,7 @@
 module tb_control;
     reg clk;            // Sinal de clock
     reg [7:0] byte;    // Byte lido do arquivo
-    reg flag;          // MSB da flag
+    reg bypass_flag;          // MSB da bypass_flag
     reg [7:0] data;    // Dados (7 bits restantes)
     reg reset;             // Reset signal
     wire [6:0] uut_output; // Saída do uut
@@ -19,7 +19,7 @@ module tb_control;
     Decoder DECODER (
         .clk(clk),
         .reset(reset),
-        .bypass(flag),
+        .bypass(bypass_flag),
         .bin(bin_out),
         .n_bin(n_bin),
         .data(data_wire),
@@ -43,6 +43,7 @@ module tb_control;
 
     initial begin
         reset = 1;
+        n_bin = 0;
         #12; 
         reset = 0;
 
@@ -62,15 +63,15 @@ module tb_control;
                 $finish;
             end
 
-            // Separar a flag e os dados
-            flag = byte[7]; // MSB como flag
+            // Separar a bypass_flag e os dados
+            bypass_flag = byte[7]; // MSB como bypass_flag
             data = byte[6:0]; // Restante dos bits
 
             n_bin = ~data[0];
-            // Atribuir a flag e os dados em um ciclo de clock
+            // Atribuir a bypass_flag e os dados em um ciclo de clock
             @(posedge clk);
-            // Atribuir flag e data
-            // DECODER.bypass <= flag; 
+            // Atribuir bypass_flag e data
+            // DECODER.bypass <= bypass_flag; 
             // DECODER.data <= data; 
 
             // Esperar enquanto o valor retornado do uut não corresponder

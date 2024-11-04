@@ -1,32 +1,40 @@
-def processar_dados(arquivo_entrada, arquivo_saida):
-    with open(arquivo_entrada, 'r') as f:
-        linhas = f.readlines()
-    
-    dados_binarios = bytearray()
+def process_and_write_binary(input_file, output_file):
+    with open(input_file, 'r') as file, open(output_file, 'wb') as bin_file:
+        for line in file:
+            parts = line.split()
+            if len(parts) == 3:
+                # Converter cada parte da linha para int
+                left_value = int(parts[0]) & 0xFF       # Primeiro byte (8 bits)
+                middle_value = int(parts[1]) & 0x01     # Apenas o bit mais significativo do segundo byte
+                right_value = int(parts[2]) & 0x7F      # 7 bits restantes do segundo byte
+                
+                # Construir o segundo byte: MSB é middle_value e os 7 bits seguintes são right_value
+                second_byte = (middle_value << 7) | right_value
+                
+                # Escrever os dois bytes no arquivo binário
+                bin_file.write(bytes([left_value, second_byte]))
 
-    for linha in linhas:
-        numero, flag = map(int, linha.strip().split())
-        
-        # Certifique-se de que `numero` esteja dentro de 7 bits e `flag` seja 0 ou 1
-        if not (0 <= numero < 128) or not (flag in (0, 1)):
-            raise ValueError(f"Dado inválido: {numero} {flag}")
 
-        # Construa o byte: (flag << 7) | numero
-        byte = (flag << 7) | numero
-        dados_binarios.append(byte)
-    
-    # Salve o resultado em um arquivo binário
-    with open(arquivo_saida, 'wb') as f:
-        f.write(dados_binarios)
-    
-    # Leitura e exibição dos 10 primeiros valores para validação (sem a flag)
-    with open(arquivo_saida, 'rb') as f:
-        primeiros_10_bytes = list(f.read(10))
+def read_and_display_binary(output_file):
+    with open(output_file, 'rb') as bin_file:
+        # Ler os primeiros 20 bytes
+        bytes_to_read = 20
+        byte_values = bin_file.read(bytes_to_read)
         
-        # Remover a flag (bit mais significativo) de cada byte usando a máscara 0x7F
-        valores_sem_flag = [byte & 0x7F for byte in primeiros_10_bytes]
+        # Converter os bytes lidos em valores decimais
+        decimal_values = [b for b in byte_values]
         
-        print("Primeiros 10 valores no arquivo binário (sem a flag):", valores_sem_flag)
+        # Exibir os valores decimais
+        print("Os primeiros 20 bytes em decimal:")
+        for index, value in enumerate(decimal_values):
+            print(f"Byte {index + 1}: {value}")
 
-# Exemplo de uso
-processar_dados('DataExtracted/controle.txt', 'DataProcessed/control.bin')
+# Nome do arquivo de entrada e saída binária
+input_file = 'VVCAritmethicDecoder/DataExtracted/controle.txt'    # Altere para o nome do seu arquivo de entrada
+output_file = 'saida.bin'     # Nome do arquivo de saída binária
+
+# Processar o arquivo e salvar o resultado em formato binário
+process_and_write_binary(input_file, output_file)
+# Ler o arquivo binário e exibir os primeiros 20 bytes em decimal
+read_and_display_binary(output_file)
+print("Arquivo processado e salvo em formato binário com sucesso.")

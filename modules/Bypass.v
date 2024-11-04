@@ -8,8 +8,8 @@ module DecodeBinEP(
     output wire [15:0] m_value_out  
 );
 
-    wire [16:0] value_shifted;
-    wire [16:0] range_shifted;
+    wire [16:0] value_shifted;      // precisa ser 17 bits para não perder informação na hora do compador
+    wire [15:0] scaledRange; // revisar 2^9 << 2^7 = 2^16	
 
     wire [15:0] saida_subtrator1;
     wire [15:0] saida_subtrator2;
@@ -25,27 +25,27 @@ module DecodeBinEP(
     // assign bin_out = {1'b0, saida_comp1};
 
     // Instanciação de módulos
-    shifter_left  shifter (
+    lefth_shifter  value1_1s (
         .data_in(m_value_in),
-        .shift_amount(1),
+        .shift_amount(3'd1),
         .data_out(value_shifted)
     );
 
-    shifter_left #(.DATA_IN_WIDTH(9), .DATA_OUT_WIDTH(17)) shifter2 (
+    lefth_shifter #(.DATA_IN_WIDTH(9), .DATA_OUT_WIDTH(16)) range_7s (
         .data_in(m_range),
-        .shift_amount(7),
-        .data_out(range_shifted)
+        .shift_amount(3'd7),
+        .data_out(scaledRange)
     );
 
-    comparador comp_bit1 (
+    compador_16_17bit comp_bit1 (
         .a(value_shifted),
-        .b(range_shifted),
+        .b(scaledRange),
         .out_comp(saida_comp1)
     );
 
-    unsigned_subtractor subtrator (
+    u_sub_17_16 subtrator (
         .a(value_shifted),
-        .b(range_shifted),
+        .b(scaledRange),
         .result(saida_subtrator1)
     );
 
@@ -57,27 +57,21 @@ module DecodeBinEP(
     );
 
 //##################### Segundo Bin
-   shifter_left  shifter3 (
+   lefth_shifter  value2_1s (
         .data_in(saida_mux1),
-        .shift_amount(1),
+        .shift_amount(3'd1),
         .data_out(m_value_two_out)
     );
 
-    // shifter_left #(.DATA_IN_WIDTH(9), .DATA_OUT_WIDTH(17)) shifter2 (
-    //     .data_in(m_range),
-    //     .shift_amount(7),
-    //     .data_out(range_shifted)
-    // );
-
-    comparador comp_bit2 (
+    compador_16_17bit comp_bit2 (
         .a(new_m_value_in),
-        .b(range_shifted),
+        .b(scaledRange),
         .out_comp(saida_comp2)
     );
 
-    unsigned_subtractor subtrator2 (
+    u_sub_17_16 subtrator2 (
         .a(new_m_value_in),
-        .b(range_shifted),
+        .b(scaledRange),
         .result(saida_subtrator2)
     );
 
@@ -97,11 +91,4 @@ module DecodeBinEP(
     );
 
 //######################
-
-    // // Lógica combinacional
-    // always @* begin
-
-    //     // bin_out = bin_out;
-    //     m_value_out = saida_mux1;
-    // end
 endmodule

@@ -1,21 +1,36 @@
 module bitsNeeded(
     input signed [3:0] m_bitsNeeded,
     input [2:0] numBits,
+    input nBin_in,
     input bypass,
     input mps_lps,
     input mps_renorm,
     output wire request_byte,
+    output wire selOrderSum,
+    output wire signed [3:0] bitsNeededRB_out,
     output wire signed [3:0] bitsNeeded_out
 );
 
+    wire [2:0] muxDecrement_out;
     wire [2:0] muxSumIndex_Out;
     wire signed [3:0] saida_adder1;
     wire signed [3:0] muxbitsNeeded1_out;
     wire signed [3:0] muxbitsNeeded2_out;
     wire selmuxbitsNeeded2;
+    wire [3:0] resetBitsNeeded;
+
+    assign selOrderSum = (m_bitsNeeded == -4'd2) ? 1 : (m_bitsNeeded == -4'd1 ? 0 : 0);
+    assign resetBitsNeeded = (selOrderSum == 1) ? -4'd8 : -4'd7;
+
+    mux2to1 #(3) muxDecrement (
+        .a(3'd2),
+        .b(3'd1),
+        .sel(nBin_in),
+        .y(muxDecrement_out)
+    );
 
     mux2to1 #(3) muxSumIndex (
-        .a(3'd2),
+        .a(muxDecrement_out),
         .b(numBits),
         .sel(bypass),
         .y(muxSumIndex_Out)
@@ -27,6 +42,8 @@ module bitsNeeded(
         .result(saida_adder1)
     );
 
+    assign bitsNeededRB_out = saida_adder1;
+
     comparadorS comp_bit1 (
         .a(saida_adder1),
         .b(4'd0),
@@ -34,7 +51,7 @@ module bitsNeeded(
     );
 
     mux2to1 #(4) muxbitsNeeded1 (
-        .a(-4'd8),
+        .a(resetBitsNeeded),
         .b(saida_adder1),
         .sel(request_byte),
         .y(muxbitsNeeded1_out)

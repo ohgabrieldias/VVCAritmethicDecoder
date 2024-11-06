@@ -1,7 +1,7 @@
 module signed_left_shift (
     input [7:0] value_in,            // valor a ser deslocado
     input signed [3:0] shift_amount, // valor signed de 4 bits
-    output [7:0] value_out           // valor deslocado
+    output [15:0] value_out          // valor deslocado
 );
 
     // Convertemos o valor signed para positivo usando um operador ternário para manter a lógica combinacional

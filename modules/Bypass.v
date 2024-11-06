@@ -1,10 +1,12 @@
 module DecodeBinEP(
     input [8:0] m_range,       
     input [15:0] m_value_in,
-    input [16:0] new_m_value_in,
+    input [16:0] new_m_value_in1,
+    input [16:0] new_m_value_in0,
     input n_bin,
     output wire [1:0] bin_out,   
-    output wire [16:0] m_value_two_out,                
+    output wire [16:0] m_value1_out,
+    output wire [16:0] m_value0_out,           
     output wire [15:0] m_value_out  
 );
 
@@ -28,7 +30,7 @@ module DecodeBinEP(
     lefth_shifter  value1_1s (
         .data_in(m_value_in),
         .shift_amount(3'd1),
-        .data_out(value_shifted)
+        .data_out(m_value0_out)
     );
 
     lefth_shifter #(.DATA_IN_WIDTH(9), .DATA_OUT_WIDTH(16)) range_7s (
@@ -38,20 +40,20 @@ module DecodeBinEP(
     );
 
     compador_16_17bit comp_bit1 (
-        .a(value_shifted),
+        .a(new_m_value_in0),
         .b(scaledRange),
         .out_comp(saida_comp1)
     );
 
     u_sub_17_16 subtrator (
-        .a(value_shifted),
+        .a(new_m_value_in0),
         .b(scaledRange),
         .result(saida_subtrator1)
     );
 
     mux2to1 muxValue1 (
         .a(saida_subtrator1),
-        .b(value_shifted),
+        .b(new_m_value_in0),
         .sel(saida_comp1),
         .y(saida_mux1)
     );
@@ -60,24 +62,24 @@ module DecodeBinEP(
    lefth_shifter  value2_1s (
         .data_in(saida_mux1),
         .shift_amount(3'd1),
-        .data_out(m_value_two_out)
+        .data_out(m_value1_out)
     );
 
     compador_16_17bit comp_bit2 (
-        .a(new_m_value_in),
+        .a(new_m_value_in1),
         .b(scaledRange),
         .out_comp(saida_comp2)
     );
 
     u_sub_17_16 subtrator2 (
-        .a(new_m_value_in),
+        .a(new_m_value_in1),
         .b(scaledRange),
         .result(saida_subtrator2)
     );
 
     mux2to1 muxValue2 (
         .a(saida_subtrator2),
-        .b(new_m_value_in),
+        .b(new_m_value_in1),
         .sel(saida_comp2),
         .y(saida_mux2)
     );

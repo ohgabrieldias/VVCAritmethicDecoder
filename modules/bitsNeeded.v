@@ -17,10 +17,10 @@ module bitsNeeded(
     wire signed [3:0] muxbitsNeeded1_out;
     wire signed [3:0] muxbitsNeeded2_out;
     wire selmuxbitsNeeded2;
-    wire [3:0] resetBitsNeeded;
+    wire comp_out;
 
+    assign request_byte = (bypass == 0 && selmuxbitsNeeded2 == 0) ? 0 : comp_out;
     assign selOrderSum = (m_bitsNeeded == -4'd2) ? 1 : (m_bitsNeeded == -4'd1 ? 0 : 0);
-    assign resetBitsNeeded = (selOrderSum == 1) ? -4'd8 : -4'd7;
 
     wire signed [3:0] valueToBeReset;
     assign valueToBeReset = (bypass == 0 && saida_adder1 >= 0) ? (saida_adder1 - 8) : 
@@ -54,13 +54,13 @@ module bitsNeeded(
     comparadorS comp_bit1 (
         .a(saida_adder1),
         .b(4'd0),
-        .out_comp(request_byte)
+        .out_comp(comp_out)
     );
 
     mux2to1 #(4) muxbitsNeeded1 (
         .a(valueToBeReset),
         .b(saida_adder1),
-        .sel(request_byte),
+        .sel(comp_out),
         .y(muxbitsNeeded1_out)
     );
 

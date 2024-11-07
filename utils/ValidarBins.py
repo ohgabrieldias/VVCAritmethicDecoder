@@ -14,8 +14,8 @@ def comparar_arquivos(arquivo1, arquivo2):
             # Comparar as linhas
             if linha1 != linha2:
                 print(f"Diferença encontrada na linha {linha_num}:")
-                print(f"Arquivo 1: {linha1}")
-                print(f"Arquivo 2: {linha2}")
+                print(f"VTM: {linha1}")
+                print(f"BYM: {linha2}")
                 return
 
             linha_num += 1
@@ -23,4 +23,4 @@ def comparar_arquivos(arquivo1, arquivo2):
         print("Nenhuma diferença encontrada nas linhas verificadas até o fim de", arquivo2)
 
 # Exemplo de uso:
-comparar_arquivos('VVCSoftware_VTM/bin/binsOut.txt', 'VVCAritmethicDecoder/Val/output.txt')
+comparar_arquivos('VVCSoftware_VTM/bin/binsOut200.txt', 'VVCAritmethicDecoder/Val/output.txt')

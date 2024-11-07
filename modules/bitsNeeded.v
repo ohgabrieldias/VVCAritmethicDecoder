@@ -22,6 +22,13 @@ module bitsNeeded(
     assign selOrderSum = (m_bitsNeeded == -4'd2) ? 1 : (m_bitsNeeded == -4'd1 ? 0 : 0);
     assign resetBitsNeeded = (selOrderSum == 1) ? -4'd8 : -4'd7;
 
+    wire signed [3:0] valueToBeReset;
+    assign valueToBeReset = (bypass == 0 && saida_adder1 >= 0) ? (saida_adder1 - 8) : 
+                        (saida_adder1 == 0) ? -8 : 
+                        (saida_adder1 > 0) ? -7 : 
+                        valueToBeReset;
+
+
     mux2to1 #(3) muxDecrement (
         .a(3'd2),
         .b(3'd1),
@@ -51,7 +58,7 @@ module bitsNeeded(
     );
 
     mux2to1 #(4) muxbitsNeeded1 (
-        .a(resetBitsNeeded),
+        .a(valueToBeReset),
         .b(saida_adder1),
         .sel(request_byte),
         .y(muxbitsNeeded1_out)

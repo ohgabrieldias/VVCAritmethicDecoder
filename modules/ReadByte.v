@@ -48,7 +48,7 @@ module readByte(
         .value_out(shifter_out)
     );
 
-    adder #(16) adderDataBin ( //revisar
+    adder #(16) adderDataBin (
         .a(m_value_bin),
         .b(shifter_out),
         .result(m_value_bin_out)

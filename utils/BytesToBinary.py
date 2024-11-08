@@ -22,4 +22,4 @@ def convert_txt_to_binary(input_file, output_file):
     print("Primeiros 10 valores em decimal:", first_ten_values)
 
 # Exemplo de uso
-convert_txt_to_binary('VVCAritmethicDecoder/DataExtracted/bytesExtracted.txt', 'VVCAritmethicDecoder/DataProcessed/bytes.bin')
+convert_txt_to_binary('VVCAritmethicDecoder/DataExtracted/bytesExtracted3.txt', 'VVCAritmethicDecoder/DataProcessed/bytes3.bin')

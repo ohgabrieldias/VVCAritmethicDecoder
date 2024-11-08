@@ -51,7 +51,7 @@ module bitsNeeded(
 
     assign bitsNeededRB_out = saida_adder1;
 
-    comparadorS comp_bit1 (
+    s_comparator comp_bit1 (
         .a(saida_adder1),
         .b(4'd0),
         .out_comp(comp_out)

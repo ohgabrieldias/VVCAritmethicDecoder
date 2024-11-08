@@ -6,6 +6,7 @@ module tb_control;
     reg [7:0] pState;   // Decoder state
     reg [6:0] numBins;  // Number of bins to decode
     reg [6:0] count;    // Clock cycle counter
+    reg [32:0] count_line;
     reg bypass_flag;    // MSB of bypass_flag
     reg reset;          // Reset signal
     wire [1:0] bin_out; // Output of the BinDecoderBase module
@@ -39,6 +40,7 @@ module tb_control;
 
     // Clock signal generation
     initial begin
+        count_line = 0;
         count = 0;
         clk = 0;
         forever #5 clk = ~clk; // Clock with a period of 10 time units
@@ -60,7 +62,7 @@ module tb_control;
         reset = 0;
 
         // Open the binary input file
-        file = $fopen("D:/Dropbox/GraduacaoEC/Cadeiras/2024.2/TCC-I/VVC/VVCAritmethicDecoder/DataProcessed/saida.bin", "rb");
+        file = $fopen("D:/Dropbox/GraduacaoEC/Cadeiras/2024.2/TCC-I/VVC/VVCAritmethicDecoder/DataProcessed/control3.bin", "rb");
         if (file == 0) begin
             $display("Error opening the file!");
             $finish;
@@ -82,6 +84,7 @@ module tb_control;
                 $finish;
             end
             pState = byte;
+            count_line = count_line + 1;
 
             // Read the second byte
             r = $fread(byte, file);
@@ -89,7 +92,7 @@ module tb_control;
                 $display("Error reading the second byte!");
                 $finish;
             end
-
+            
             // Separate bypass_flag and data
             bypass_flag = byte[7];
             numBins = byte[6:0];

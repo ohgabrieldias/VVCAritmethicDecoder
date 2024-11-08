@@ -65,7 +65,7 @@ module DecodeBin (
         .data_out(scaledRange)
     );
 
-    comparador compPath (   // se o valor for >= range, output = 1, 0 significa MPS
+    comparator compPath (   // se o valor for >= range, output = 1, 0 significa MPS
         .a(m_value_in),
         .b(scaledRange),
         .out_comp(compPath_out)
@@ -75,7 +75,7 @@ module DecodeBin (
 
     assign inv_bin = ~bin;
 
-    comparador #(9) compNumBits (       // se o range for >= 256, output = 1, 0 significa renormalização
+    comparator #(9) compNumBits (       // se o range for >= 256, output = 1, 0 significa renormalização
         .a(range_tmp),
         .b(9'd256),
         .out_comp(compNumBits_out)

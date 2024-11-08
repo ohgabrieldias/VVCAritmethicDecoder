@@ -30,8 +30,8 @@ def read_and_display_binary(output_file):
             print(f"Byte {index + 1}: {value}")
 
 # Nome do arquivo de entrada e saída binária
-input_file = 'VVCAritmethicDecoder/DataExtracted/controle.txt'    # Altere para o nome do seu arquivo de entrada
-output_file = 'saida.bin'     # Nome do arquivo de saída binária
+input_file = 'VVCAritmethicDecoder/DataProcessed/controleStructData3.txt'    # Altere para o nome do seu arquivo de entrada
+output_file = 'VVCAritmethicDecoder/DataProcessed/control3.bin'     # Nome do arquivo de saída binária
 
 # Processar o arquivo e salvar o resultado em formato binário
 process_and_write_binary(input_file, output_file)

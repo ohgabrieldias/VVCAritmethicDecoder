@@ -39,7 +39,7 @@ module DecodeBinEP(
         .data_out(scaledRange)
     );
 
-    compador_16_17bit comp_bit1 (
+    comparator_16_17bit comp_bit1 (
         .a(new_m_value_in0),
         .b(scaledRange),
         .out_comp(saida_comp1)
@@ -51,7 +51,7 @@ module DecodeBinEP(
         .result(saida_subtrator1)
     );
 
-    mux2to1 muxValue1 (
+    mux2to1_16_17_16bit muxValue1 (
         .a(saida_subtrator1),
         .b(new_m_value_in0),
         .sel(saida_comp1),
@@ -65,7 +65,7 @@ module DecodeBinEP(
         .data_out(m_value1_out)
     );
 
-    compador_16_17bit comp_bit2 (
+    comparator_16_17bit comp_bit2 (
         .a(new_m_value_in1),
         .b(scaledRange),
         .out_comp(saida_comp2)
@@ -77,7 +77,7 @@ module DecodeBinEP(
         .result(saida_subtrator2)
     );
 
-    mux2to1 muxValue2 (
+    mux2to1_16_17_16bit muxValue2 (
         .a(saida_subtrator2),
         .b(new_m_value_in1),
         .sel(saida_comp2),

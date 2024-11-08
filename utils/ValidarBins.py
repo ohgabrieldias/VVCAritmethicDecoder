@@ -23,4 +23,4 @@ def comparar_arquivos(arquivo1, arquivo2):
         print("Nenhuma diferença encontrada nas linhas verificadas até o fim de", arquivo2)
 
 # Exemplo de uso:
-comparar_arquivos('VVCSoftware_VTM/bin/binsOut1000.txt', 'VVCAritmethicDecoder/Val/output.txt')
+comparar_arquivos('VVCSoftware_VTM/bin/binsOut1000000.txt', 'VVCAritmethicDecoder/Val/output.txt')

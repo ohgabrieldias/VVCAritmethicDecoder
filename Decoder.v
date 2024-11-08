@@ -124,19 +124,16 @@ module Decoder(
             m_range <= 9'd510;          // Inicializa m_range com 289
             m_bitsNeeded <= -4'd8;      // Inicializa m_bitsNeeded com -8
             m_value <= 16'd36049;        // Inicializa m_value com 36049
-            // bin <= 1'b1;                // Inicializa bin como 1
 
         end else begin
             // Atualizações apenas quando não estiver em bypass
             if (bypass) begin
                 m_bitsNeeded <= m_bitsNeeded_out; // Atualiza com o novo valor
                 m_value <= m_value_out;           // Atualiza com o novo valor
-                // bin <= bin_out;                
             end else begin
                 m_bitsNeeded <= m_bitsNeeded_out; // Atualiza com o novo valor
                 m_value <= m_value_out;           // Atualiza com o novo valor
                 m_range <= m_range_out;           // Atualiza com o novo valor
-                // bin <= bin_out;                   // Atualiza com o novo valor
             end
             
         end

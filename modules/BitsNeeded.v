@@ -16,18 +16,14 @@ module bitsNeeded(
     wire signed [3:0] saida_adder1;
     wire signed [3:0] muxbitsNeeded1_out;
     wire signed [3:0] muxbitsNeeded2_out;
+    wire signed [3:0] valueToBeReset;
     wire selmuxbitsNeeded2;
     wire comp_out;
 
-    assign request_byte = (bypass == 0 && selmuxbitsNeeded2 == 0) ? 0 : comp_out;
+    assign request_byte = (~bypass & ~selmuxbitsNeeded2) ? 0 : comp_out;
     assign selOrderSum = (m_bitsNeeded == -4'd2) ? 1 : (m_bitsNeeded == -4'd1 ? 0 : 0);
 
-    wire signed [3:0] valueToBeReset;
-    assign valueToBeReset = (bypass == 0 && saida_adder1 >= 0) ? (saida_adder1 - 8) : 
-                        (saida_adder1 == 0) ? -8 : 
-                        (saida_adder1 > 0) ? -7 : 
-                        valueToBeReset;
-
+    assign valueToBeReset = saida_adder1 - 8;
 
     mux2to1 #(3) muxDecrement (
         .a(3'd2),

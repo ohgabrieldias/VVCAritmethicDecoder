@@ -25,7 +25,7 @@ module readByte(
     mux2to1 #(17) muxValueBinEP0 (
         .a(adderDataBinEP0_out),
         .b(m_value_binEP0),
-        .sel((flag & ~selOrderSum)),
+        .sel((flag & selOrderSum)),
         .y(m_value_binEP0_out)
     );
 
@@ -38,7 +38,7 @@ module readByte(
     mux2to1 #(17) muxValueBinEP1 (
         .a(adderDataBinEP1_out),
         .b(m_value_binEP1),
-        .sel((flag & selOrderSum)),
+        .sel((flag & ~selOrderSum)),
         .y(m_value_binEP1_out)
     );
 

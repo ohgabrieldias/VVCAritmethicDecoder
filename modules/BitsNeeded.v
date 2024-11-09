@@ -21,8 +21,7 @@ module bitsNeeded(
     wire comp_out;
 
     assign request_byte = (~bypass & ~selmuxbitsNeeded2) ? 0 : comp_out;
-    assign selOrderSum = (m_bitsNeeded == -4'd2) ? 1 : (m_bitsNeeded == -4'd1 ? 0 : 0);
-
+    assign selOrderSum = m_bitsNeeded[0];
     assign valueToBeReset = saida_adder1 - 8;
 
     mux2to1 #(3) muxDecrement (

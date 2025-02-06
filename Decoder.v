@@ -4,7 +4,7 @@ module Decoder #(parameter WIDTH = 4)(
     input bypass,            // Flag para selecionar o módulo de saída
     input [7:0] data,        // Byte solicitado
     input [7:0] pState_in,   // Estado do codificador
-    input [1:0] n_bin,             // Número de bins a serem decodificados
+    input [1:0] n_bin,             // Número de bins a serem decodificados por ciclo
     output wire [WIDTH - 1:0] bin,               // Saída do bit decodificado do BinDecoderBase
     output wire request_byte         // Sinal para incrementar a requisição
 );
@@ -16,7 +16,6 @@ module Decoder #(parameter WIDTH = 4)(
 // ######################## WIRES ############################
     wire [WIDTH - 1:0] bin_out_binEP;
     wire [WIDTH - 1:0] bin_out_bin;
-    // wire [WIDTH - 1:0] bin_out;
     
     wire [15:0] m_value_out_bin;              // Saída atualizada para m_value
     wire [15:0] m_value_out_binEP;           // Saída intermediaria shiftada << 1

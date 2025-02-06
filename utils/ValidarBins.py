@@ -1,3 +1,10 @@
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+
+# Cria uma instância do Console
+console = Console()
+
 def comparar_arquivos(arquivo1, arquivo2):
     with open(arquivo1, 'r') as f1, open(arquivo2, 'r') as f2:
         linha_num = 1
@@ -20,7 +27,14 @@ def comparar_arquivos(arquivo1, arquivo2):
 
             linha_num += 1
 
-        print("Nenhuma diferença encontrada nas linhas verificadas até o fim de", arquivo2)
+        # Mensagem de sucesso
+        mensagem = f"Nenhuma diferença encontrada nas linhas verificadas até o fim de {arquivo2}"
+        
+        # Cria um texto formatado com ícone de sucesso e estilo
+        texto_formatado = Text("✅ " + mensagem, style="bold green")
+
+        # Exibe a mensagem em um painel para mais destaque
+        console.print(Panel(texto_formatado, title="Sucesso", style="bold green"))
 
 # Exemplo de uso:
-comparar_arquivos('VVCAritmethicDecoder/DataExtracted/binsOut1000000.txt', 'VVCAritmethicDecoder/Val/output.txt')
+comparar_arquivos('DataExtracted/binsOut1000000.txt', 'Val/output.txt')

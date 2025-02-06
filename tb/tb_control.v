@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module tb_control;
+module tb_control #(parameter WIDTH = 4);
     reg clk;            // Clock signal
     reg [7:0] byte;     // Byte read from file
     reg [7:0] pState;   // Decoder state
@@ -9,17 +9,18 @@ module tb_control;
     reg [32:0] count_line;
     reg bypass_flag;    // MSB of bypass_flag
     reg reset;          // Reset signal
-    wire [1:0] bin_out; // Output of the BinDecoderBase module
+    wire [WIDTH - 1:0] bin_out; // Output of the BinDecoderBase module
     wire request_byte;  // Signal to increment the request
     integer file;       // File handle for input
     integer output_file; // File handle for output
     integer r;          // Variable for file read
+    integer i;
     wire [7:0] data_wire;
     wire data_ready;
-    reg n_bin;          // Defines how many bins are decoded per cycle
+    reg [1:0] n_bin;          // Defines how many bins are decoded per cycle
 
     // Instantiate the Decoder module
-    Decoder DECODER (
+    Decoder #(4) DECODER (
         .clk(clk),
         .reset(reset),
         .bypass(bypass_flag),
@@ -46,15 +47,14 @@ module tb_control;
         forever #5 clk = ~clk; // Clock with a period of 10 time units
     end
 
-     always @(*) begin
-        if (numBins - count == 1) begin
-            n_bin = 0; // Se falta apenas 1 para atingir numBins, defina n_bin como 0
-        end else if (byte[0] == 0 || numBins > 1) begin
-            n_bin = 1; // Condições principais para definir n_bin como 1
+    always @(*) begin
+        if (numBins - count <= 4) begin
+            n_bin = (numBins - count) - 1; // Processa o que falta (1, 2, 3 ou 4)
         end else begin
-            n_bin = 0; // Caso contrário, n_bin permanece 0
+            n_bin = 3; // Processa 4 bins (capacidade máxima)
         end
     end
+
     initial begin
         reset = 1;
         n_bin = 1;
@@ -103,50 +103,36 @@ module tb_control;
                 @(posedge clk);
 
                 if (bypass_flag) begin
-                    if (~byte[0]) begin // byte é par
+                    // if (~byte[0]) begin // byte é par
                         // Incrementa sempre por 2 quando byte é par
-                        count = count + 2;
-                        $display("Modo bypass com byte par: contador incrementado por 2, contador atual = %d", count);
-                    end else begin // byte é impar
-                        // Incrementa por 2 até se aproximar de numBins, então incrementa por 1 se necessário
-                        if (numBins - count == 1) begin
-                            count = count + 1;
-                            $display("Modo bypass com byte impar proximo ao limite: contador incrementado por 1, contador atual = %d", count);
-                        end else begin
-                            count = count + 2;
-                            $display("Modo bypass com byte impar: contador incrementado por 2, contador atual = %d", count);
-                        end
-                    end
+                    count = count + n_bin + 1;
+                    $display("Modo bypass com byte par: contador incrementado por %d, contador atual = %d",n_bin + 1, count);
+                    // end else begin // byte é impar
+                    //     // Incrementa por 2 até se aproximar de numBins, então incrementa por 1 se necessário
+                    //     if (numBins - count == 1) begin
+                    //         count = count + 1;
+                    //         $display("Modo bypass com byte impar proximo ao limite: contador incrementado por 1, contador atual = %d", count);
+                    //     end else begin
+                    //         count = count + 2;
+                    //         $display("Modo bypass com byte impar: contador incrementado por 2, contador atual = %d", count);
+                    //     end
+                    // end
                 end else begin
                     // Modo regular, incrementa por 1
                     count = count + 1;
                     $display("Modo regular: contador incrementado por 1, contador atual = %d", count);
                 end
 
-                // // Gravação condicional no arquivo de saida com base nas flags
-                // if (bypass_flag == 0) begin
-                //     $fwrite(output_file, "%b\n", bin_out[0]);
-                //     $display("Modo regular: Gravando LSB = %b de bin_out", bin_out[0]);
-                // end else begin
-                //     if (~byte[0]) begin
-                //         $fwrite(output_file, "%b\n", bin_out[1]);
-                //         $display("Modo bypass: Gravando MSB = %b de bin_out", bin_out[1]);
-                //         $fwrite(output_file, "%b\n", bin_out[0]);
-                //         $display("Modo bypass: Gravando LSB = %b de bin_out", bin_out[0]);
-                //     end else begin
-                //         $fwrite(output_file, "%b\n", bin_out[0]);
-                //         $display("Modo bypass: Gravando LSB = %b de bin_out", bin_out[0]);
-                //     end
-                // end
-
                 if (n_bin == 0) begin
+                    // Grava apenas o LSB (bit 0)
                     $fwrite(output_file, "%b\n", bin_out[0]);
                     $display("Gravando LSB = %b de bin_out", bin_out[0]);
                 end else begin
-                    $fwrite(output_file, "%b\n", bin_out[1]);
-                    $display("Gravando MSB = %b de bin_out", bin_out[1]);
-                    $fwrite(output_file, "%b\n", bin_out[0]);
-                    $display("Gravando LSB = %b de bin_out", bin_out[0]);
+                    // Grava os bits de acordo com o valor de n_bin
+                    for (i = 0; i <= n_bin; i = i + 1) begin
+                        $fwrite(output_file, "%b\n", bin_out[i]);
+                        $display("Gravando bin_out[%d] = %b", i, bin_out[i]);
+                    end
                 end
             end
 

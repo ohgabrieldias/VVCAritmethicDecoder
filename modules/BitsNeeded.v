@@ -1,12 +1,11 @@
 module bitsNeeded(
     input signed [3:0] m_bitsNeeded,
-    input [2:0] numBits,
-    input nBin_in,
+    input [2:0] numBits, // bits para deslocamento do bitstream
+    input [1:0] nBin_in,  // bits a serem decodificados
     input bypass,
     input mps_lps,
     input mps_renorm,
     output wire request_byte,
-    output wire selOrderSum,
     output wire signed [3:0] bitsNeededRB_out,
     output wire signed [3:0] bitsNeeded_out
 );
@@ -21,15 +20,18 @@ module bitsNeeded(
     wire comp_out;
 
     assign request_byte = (~bypass & ~selmuxbitsNeeded2) ? 0 : comp_out;
-    assign selOrderSum = m_bitsNeeded[0];
     assign valueToBeReset = saida_adder1 - 8;
 
-    mux2to1 #(3) muxDecrement (
-        .a(3'd2),
-        .b(3'd1),
-        .sel(nBin_in),
-        .y(muxDecrement_out)
-    );
+    // mux2to1 #(3) muxDecrement (
+    //     .a(3'd2),
+    //     .b(3'd1),
+    //     .sel(nBin_in),
+    //     .y(muxDecrement_out)
+    // );
+
+    assign muxDecrement_out = (nBin_in == 2'b00) ? 3'd1 :
+        (nBin_in == 2'b01) ? 3'd2 :
+        (nBin_in == 2'b10) ? 3'd3 : 3'd4;
 
     mux2to1 #(3) muxSumIndex (
         .a(muxDecrement_out),

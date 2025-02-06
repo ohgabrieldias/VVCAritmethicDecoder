@@ -34,8 +34,8 @@ def write_output(result, output_file):
             file.write(line + '\n')
 
 # Nome do arquivo de entrada e saída
-input_file = 'VVCAritmethicDecoder/DataExtracted/controle3.txt' # Altere para o nome do seu arquivo de entrada
-output_file = 'VVCAritmethicDecoder/DataProcessed/controleStructData3.txt'    # Nome do arquivo de saída
+input_file = 'VVCSoftware_VTM/bin/PartySceneDec-QP37.txt' # Altere para o nome do seu arquivo de entrada
+output_file = 'VVCAritmethicDecoder/DataProcessed/controleStructPartySceneDec-QP37.txt'    # Nome do arquivo de saída
 
 # Processar o arquivo e salvar o resultado
 result = process_file(input_file)

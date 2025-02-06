@@ -1,11 +1,11 @@
-module Decoder(
+module Decoder #(parameter WIDTH = 4)(
     input clk,               // Clock
     input reset,             // Reset assíncrono
     input bypass,            // Flag para selecionar o módulo de saída
     input [7:0] data,        // Byte solicitado
     input [7:0] pState_in,   // Estado do codificador
-    input n_bin,             // Número de bins a serem decodificados
-    output wire [1:0] bin,               // Saída do bit decodificado do BinDecoderBase
+    input [1:0] n_bin,             // Número de bins a serem decodificados
+    output wire [WIDTH - 1:0] bin,               // Saída do bit decodificado do BinDecoderBase
     output wire request_byte         // Sinal para incrementar a requisição
 );
 
@@ -14,9 +14,9 @@ module Decoder(
     reg [8:0] m_range;              // Intervalo global (uint32)
     reg [15:0] m_value;              // Valor global para decodificação (uint32)
 // ######################## WIRES ############################
-    wire [1:0] bin_out_binEP;
-    wire [1:0] bin_out_bin;
-    wire [1:0] bin_out;
+    wire [WIDTH - 1:0] bin_out_binEP;
+    wire [WIDTH - 1:0] bin_out_bin;
+    // wire [WIDTH - 1:0] bin_out;
     
     wire [15:0] m_value_out_bin;              // Saída atualizada para m_value
     wire [15:0] m_value_out_binEP;           // Saída intermediaria shiftada << 1
@@ -25,10 +25,15 @@ module Decoder(
 
     wire [15:0] m_value_out;              // Saída atualizada para m_value
 
-    wire [16:0] m_value_shifted1;           // Saída intermediaria shiftada << 1
     wire [16:0] m_value_shifted0;
-    wire [16:0] readByte1_out;           // Saída atualizada para m_value
+    wire [16:0] m_value_shifted1;           // Saída intermediaria shiftada << 1
+    wire [16:0] m_value_shifted2;
+    wire [16:0] m_value_shifted3;
+    
     wire [16:0] readByte0_out;
+    wire [16:0] readByte1_out;           // Saída atualizada para m_value
+    wire [16:0] readByte2_out;
+    wire [16:0] readByte3_out;
 
     wire [3:0] m_bitsNeeded_out;
     wire [3:0] m_bitsNeededRB_out;
@@ -37,7 +42,7 @@ module Decoder(
     wire [8:0] m_range_out;              // Saída atualizada para m_range
 
 // ######################## INSTANCES ########################
-    wire mps_lps, mps_renorm, selOrderSum_out;
+    wire mps_lps, mps_renorm;
     wire [2:0] numBits;
 
     bitsNeeded bitsNeeded (
@@ -48,7 +53,6 @@ module Decoder(
         .mps_lps(mps_lps),
         .mps_renorm(mps_renorm),
         .request_byte(request_byte),
-        .selOrderSum(selOrderSum_out),
         .bitsNeeded_out(m_bitsNeeded_out),
         .bitsNeededRB_out(m_bitsNeededRB_out)
     );
@@ -56,29 +60,37 @@ module Decoder(
     readByte readByte (
         .bitstream(data),
         .m_value_bin(m_value_out_bin),
-        .m_value_binEP1(m_value_shifted1),
         .m_value_binEP0(m_value_shifted0),
+        .m_value_binEP1(m_value_shifted1),
+        .m_value_binEP2(m_value_shifted2),
+        .m_value_binEP3(m_value_shifted3),
         .bitsNeeded(m_bitsNeededRB_out),
         .flag(request_byte),
-        .selOrderSum(selOrderSum_out),
+        .bitsNeeded_sel(m_bitsNeeded),
         .m_value_bin_out(m_value_out_tmp),
+        .m_value_binEP0_out(readByte0_out),
         .m_value_binEP1_out(readByte1_out),
-        .m_value_binEP0_out(readByte0_out)
+        .m_value_binEP2_out(readByte2_out),
+        .m_value_binEP3_out(readByte3_out)
     );
 
-    DecodeBinEP decodeBinEP (
+    DecodeBinEP #(4) decodeBinEP (
         .m_range(m_range),
         .m_value_in(m_value),
-        .new_m_value_in1(readByte1_out),
         .new_m_value_in0(readByte0_out),
+        .new_m_value_in1(readByte1_out),
+        .new_m_value_in2(readByte2_out),
+        .new_m_value_in3(readByte3_out),
         .m_value_out(m_value_out_binEP),
-        .m_value1_out(m_value_shifted1),
         .m_value0_out(m_value_shifted0),
+        .m_value1_out(m_value_shifted1),
+        .m_value2_out(m_value_shifted2),
+        .m_value3_out(m_value_shifted3),
         .bin_out(bin_out_binEP),
         .n_bin(n_bin)
     );
 
-    DecodeBin decodeBin (
+    DecodeBin #(4) decodeBin (
         .m_range_in(m_range),
         .m_value_in(m_value),
         .pState_in(pState_in),
@@ -104,7 +116,7 @@ module Decoder(
         .y(m_value_out)
     );
 
-    mux2to1 #(2) muxBinOut (
+    mux2to1 #(4) muxBinOut (
         .a(bin_out_binEP),
         .b(bin_out_bin),
         .sel(bypass),

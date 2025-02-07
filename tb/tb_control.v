@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module tb_control #(parameter WIDTH = 4);
+module tb_control #(parameter BIN_WIDTH = 1);
     reg clk;            // Clock signal
     reg [7:0] byte;     // Byte read from file
     reg [7:0] pState;   // Decoder state
@@ -9,7 +9,7 @@ module tb_control #(parameter WIDTH = 4);
     reg [32:0] count_line;
     reg bypass_flag;    // MSB of bypass_flag
     reg reset;          // Reset signal
-    wire [WIDTH - 1:0] bin_out; // Output of the BinDecoderBase module
+    wire [BIN_WIDTH - 1:0] bin_out; // Output of the BinDecoderBase module
     wire request_byte;  // Signal to increment the request
     integer file;       // File handle for input
     integer output_file; // File handle for output
@@ -20,7 +20,7 @@ module tb_control #(parameter WIDTH = 4);
     reg [1:0] n_bin;          // Defines how many bins are decoded per cycle
 
     // Instantiate the Decoder module
-    Decoder #(4) DECODER (
+    Decoder #(BIN_WIDTH) DECODER (
         .clk(clk),
         .reset(reset),
         .bypass(bypass_flag),
@@ -48,10 +48,10 @@ module tb_control #(parameter WIDTH = 4);
     end
 
     always @(*) begin
-        if (numBins - count <= 4) begin
+        if (numBins - count <= BIN_WIDTH) begin
             n_bin = (numBins - count) - 1; // Processa o que falta (1, 2, 3 ou 4)
         end else begin
-            n_bin = 3; // Processa 4 bins (capacidade máxima)
+            n_bin = BIN_WIDTH - 1; // Processa 4 bins (capacidade máxima)
         end
     end
 
@@ -103,35 +103,23 @@ module tb_control #(parameter WIDTH = 4);
                 @(posedge clk);
 
                 if (bypass_flag) begin
-                    // if (~byte[0]) begin // byte é par
-                        // Incrementa sempre por 2 quando byte é par
                     count = count + n_bin + 1;
-                    $display("Modo bypass com byte par: contador incrementado por %d, contador atual = %d",n_bin + 1, count);
-                    // end else begin // byte é impar
-                    //     // Incrementa por 2 até se aproximar de numBins, então incrementa por 1 se necessário
-                    //     if (numBins - count == 1) begin
-                    //         count = count + 1;
-                    //         $display("Modo bypass com byte impar proximo ao limite: contador incrementado por 1, contador atual = %d", count);
-                    //     end else begin
-                    //         count = count + 2;
-                    //         $display("Modo bypass com byte impar: contador incrementado por 2, contador atual = %d", count);
-                    //     end
-                    // end
+                    // $display("Modo bypass com byte par: contador incrementado por %d, contador atual = %d",n_bin + 1, count);
                 end else begin
                     // Modo regular, incrementa por 1
                     count = count + 1;
-                    $display("Modo regular: contador incrementado por 1, contador atual = %d", count);
+                    // $display("Modo regular: contador incrementado por 1, contador atual = %d", count);
                 end
 
                 if (n_bin == 0) begin
                     // Grava apenas o LSB (bit 0)
                     $fwrite(output_file, "%b\n", bin_out[0]);
-                    $display("Gravando LSB = %b de bin_out", bin_out[0]);
+                    // $display("Gravando LSB = %b de bin_out", bin_out[0]);
                 end else begin
                     // Grava os bits de acordo com o valor de n_bin
                     for (i = 0; i <= n_bin; i = i + 1) begin
                         $fwrite(output_file, "%b\n", bin_out[i]);
-                        $display("Gravando bin_out[%d] = %b", i, bin_out[i]);
+                        // $display("Gravando bin_out[%d] = %b", i, bin_out[i]);
                     end
                 end
             end
@@ -139,11 +127,8 @@ module tb_control #(parameter WIDTH = 4);
             // Zerar o contador quando atingir numBins
             if (count >= numBins) begin
                 count = 0;
-                $display("Contador zerado apos alcancar numBins.");
+                // $display("Contador zerado apos alcancar numBins.");
             end
-
-
-
         end
 
         // Close the files

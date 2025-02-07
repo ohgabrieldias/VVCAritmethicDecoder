@@ -1,9 +1,9 @@
-module DecodeBin  #(parameter WIDTH = 4)(
+module DecodeBin  #(parameter BIN_WIDTH)(
     input [8:0] m_range_in,        // Faixa de probabilidade atual
     input [15:0] m_value_in,        // Valor atual
     input [7:0] pState_in,       // Intervalo LPS
 
-    output wire [WIDTH - 1:0] bin_out,     // Bit decodificado de saída
+    output wire [BIN_WIDTH - 1:0] bin_out,     // Bit decodificado de saída
     output wire mps_lps,          // Flag para selecionar o caminho MPS ou LPS
     output wire mps_renorm,       // Flag para selecionar o caminho MPS renormalizado
     output wire [2:0] numBits_out,    // Número de bits necessários para decodificação
@@ -12,8 +12,8 @@ module DecodeBin  #(parameter WIDTH = 4)(
 );
     // Variáveis internas
     wire compPath_out;
-    wire [WIDTH - 1:0] inv_bin;
-    wire [WIDTH - 1:0] bin;
+    wire [BIN_WIDTH - 1:0] inv_bin;
+    wire [BIN_WIDTH - 1:0] bin;
 
     wire [7:0] ivlLpsRange;  // Variável intermediária para o cálculo final
 
@@ -42,7 +42,7 @@ module DecodeBin  #(parameter WIDTH = 4)(
         .data_out(renormTableData)      // Conectando a saída da ROM ao sinal data
     );
 
-    right_shift_7 #(4) getMPS (
+    right_shift_7 #(BIN_WIDTH) getMPS (
         .in(pState_in),
         .out(bin)
     );
@@ -123,7 +123,7 @@ module DecodeBin  #(parameter WIDTH = 4)(
 
     assign numBits_out = numBits;
 
-    mux2to1 #(4) binMux (
+    mux2to1 #(BIN_WIDTH) binMux (
         .a(inv_bin),
         .b(bin),
         .sel(compPath_out),

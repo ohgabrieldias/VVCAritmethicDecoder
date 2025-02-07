@@ -1,4 +1,4 @@
-module DecodeBinEP #(parameter BIN_WIDTH)(
+module DecodeBinEP #(parameter BIN_WIDTH = 4)(
     input [8:0] m_range,       
     input [15:0] m_value_in,
     input [16:0] new_m_value_in0,

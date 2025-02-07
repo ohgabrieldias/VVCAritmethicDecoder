@@ -1,4 +1,4 @@
-module DecodeBin  #(parameter BIN_WIDTH)(
+module DecodeBin  #(parameter BIN_WIDTH = 4)(
     input [8:0] m_range_in,        // Faixa de probabilidade atual
     input [15:0] m_value_in,        // Valor atual
     input [7:0] pState_in,       // Intervalo LPS

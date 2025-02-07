@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module tb_control #(parameter BIN_WIDTH = 1);
+module tb_control #(parameter BIN_WIDTH = 4);
     reg clk;            // Clock signal
     reg [7:0] byte;     // Byte read from file
     reg [7:0] pState;   // Decoder state
@@ -97,7 +97,6 @@ module tb_control #(parameter BIN_WIDTH = 1);
             bypass_flag = byte[7];
             numBins = byte[6:0];
 
-                    
             // Espera até que o número de bins decodificados seja igual a numBins
             while (count < numBins) begin
                 @(posedge clk);

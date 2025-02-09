@@ -9,7 +9,7 @@ module readByte(
     input signed [3:0] bitsNeeded,
     input flag,
 
-    output wire [15:0] m_value_bin_out,     //revisar!!!!!!!
+    output wire [15:0] m_value_binRE_out,     //revisar!!!!!!!
     output wire [16:0] m_value_binEP0_out,
     output wire [16:0] m_value_binEP1_out,
     output wire [16:0] m_value_binEP2_out,
@@ -77,7 +77,7 @@ module readByte(
     adder #(16) adderDataBin (
         .a(m_value_bin),
         .b(shifter_out),
-        .result(m_value_bin_out)
+        .result(m_value_binRE_out)
     );
 
 endmodule

@@ -4,7 +4,7 @@ module DecodeBin  #(parameter BIN_WIDTH = 4)(
     input [7:0] pState_in,       // Intervalo LPS
 
     output wire [BIN_WIDTH - 1:0] bin_out,     // Bit decodificado de saída
-    output wire mps_lps,          // Flag para selecionar o caminho MPS ou LPS
+    output wire lps,          // Flag para selecionar o caminho MPS ou LPS
     output wire mps_renorm,       // Flag para selecionar o caminho MPS renormalizado
     output wire [2:0] numBits_out,    // Número de bits necessários para decodificação
     output wire [8:0] m_range_out, // Novo valor de m_range após a decodificação
@@ -71,7 +71,7 @@ module DecodeBin  #(parameter BIN_WIDTH = 4)(
         .out_comp(compPath_out)
     );                          // 0 MPS, 1 LPS
 
-    assign mps_lps = compPath_out;
+    assign lps = compPath_out;
 
     assign inv_bin = ~bin;
 

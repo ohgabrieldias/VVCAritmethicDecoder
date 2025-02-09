@@ -41,7 +41,7 @@ module Decoder #(parameter BIN_WIDTH = 4)(
     wire [8:0] m_range_out_bin;              // Saída atualizada para m_range
     wire [8:0] m_range_out;              // Saída atualizada para m_range
 
-    wire mps_lps, mps_renorm;
+    wire lps, mps_renorm;
     wire [2:0] numBits;   // Deslocamento do bitstream obtido pelo ROM      
 
 // ######################## INSTANCES ########################
@@ -51,7 +51,7 @@ module Decoder #(parameter BIN_WIDTH = 4)(
         .numBits(numBits),
         .bypass(bypass),
         .nBin_in(n_bin),
-        .mps_lps(mps_lps),
+        .lps(lps),
         .mps_renorm(mps_renorm),
         .request_byte(request_byte),
         .bitsNeeded_out(m_bitsNeeded_out),
@@ -68,7 +68,7 @@ module Decoder #(parameter BIN_WIDTH = 4)(
         .bitsNeeded(m_bitsNeededRB_out),
         .flag(request_byte),
         .bitsNeeded_sel(m_bitsNeeded),
-        .m_value_bin_out(m_value_out_tmp),
+        .m_value_binRE_out(m_value_out_tmp),
         .m_value_binEP0_out(readByte0_out),
         .m_value_binEP1_out(readByte1_out),
         .m_value_binEP2_out(readByte2_out),
@@ -96,7 +96,7 @@ module Decoder #(parameter BIN_WIDTH = 4)(
         .m_value_in(m_value),
         .pState_in(pState_in),
         .bin_out(bin_out_bin),
-        .mps_lps(mps_lps),
+        .lps(lps),
         .mps_renorm(mps_renorm),
         .numBits_out(numBits),
         .m_range_out(m_range_out_bin),

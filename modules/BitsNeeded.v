@@ -3,7 +3,7 @@ module bitsNeeded(
     input [2:0] numBits, // bits para deslocamento do bitstream
     input [1:0] nBin_in,  // bits a serem decodificados
     input bypass,
-    input mps_lps,
+    input lps,
     input mps_renorm,
     output wire request_byte,
     output wire signed [3:0] bitsNeededRB_out,
@@ -61,7 +61,7 @@ module bitsNeeded(
         .y(muxbitsNeeded1_out)
     );
 
-    assign selmuxbitsNeeded2 = (~mps_lps & ~mps_renorm) | mps_lps;  // inverte pq mps_lps e mps_renorm estao invertidos
+    assign selmuxbitsNeeded2 = (~lps & ~mps_renorm) | lps;  // inverte pq lps e mps_renorm estao invertidos
 
     mux2to1 #(4) muxbitsNeeded2 (
         .a(muxbitsNeeded1_out),

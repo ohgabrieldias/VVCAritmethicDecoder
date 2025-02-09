@@ -41,125 +41,50 @@ module DecodeBin  #(parameter BIN_WIDTH = 4)(
         .addr(romIndex),         // Conectando o endereço de entrada ao sinal addr
         .data_out(renormTableData)      // Conectando a saída da ROM ao sinal data
     );
-
-    right_shift_7 #(BIN_WIDTH) getMPS (
-        .in(pState_in),
-        .out(bin)
-    );
     
+    assign bin = pState_in >> 7;
+
     getLPS getLPS (
         .state(pState_in),
         .range(m_range_in),
         .lps(ivlLpsRange)
     );
 
-    subtractor_range sub (          // define o Range
-        .in_a(m_range_in),
-        .in_b(ivlLpsRange),
-        .out(range_tmp)
-    );
+    assign range_tmp = m_range_in - ivlLpsRange;
 
-    lefth_shifter #(.DATA_IN_WIDTH(9), .DATA_OUT_WIDTH(16)) shifter (
-        .data_in(range_tmp),
-        .shift_amount(3'd7),
-        .data_out(scaledRange)
-    );
+    assign scaledRange = range_tmp << 7;
 
-    comparator compPath (   // se o valor for >= range, output = 1, 0 significa MPS
-        .a(m_value_in),
-        .b(scaledRange),
-        .out_comp(compPath_out)
-    );                          // 0 MPS, 1 LPS
-
+    assign compPath_out = (m_value_in >= scaledRange);
     assign mps_lps = compPath_out;
-
     assign inv_bin = ~bin;
 
-    comparator #(9) compNumBits (       // se o range for >= 256, output = 1, 0 significa renormalização
-        .a(range_tmp),
-        .b(9'd256),
-        .out_comp(compNumBits_out)
-    );
+    assign compNumBits_out = (range_tmp >= 256);
     
     assign mps_renorm = compNumBits_out;
 // #### MPS
-    lefth_shifter #(.DATA_IN_WIDTH(9), .DATA_OUT_WIDTH(9)) shifter2 (
-        .data_in(range_tmp),
-        .shift_amount(numBits),
-        .data_out(range_mps_renorm)
-    );
+    assign range_mps_renorm = range_tmp << numBits;
+    
+    assign m_value_mps_renorm = m_value_in << numBits;
+    assign range_mps = compNumBits_out ? range_tmp : range_mps_renorm;
 
-    lefth_shifter #(.DATA_IN_WIDTH(16), .DATA_OUT_WIDTH(16)) shifter3 (
-        .data_in(m_value_in),
-        .shift_amount(numBits),
-        .data_out(m_value_mps_renorm)
-    );
+    assign m_value_mps = compNumBits_out ? m_value_in : m_value_mps_renorm;
 
-    mux2to1 #(9) renormRangeMux (
-        .a(range_tmp),
-        .b(range_mps_renorm),
-        .sel(compNumBits_out),
-        .y(range_mps)
-    );
+    assign romIndex = ivlLpsRange >> 3;
 
-    mux2to1 #(16) renormValueMux (
-        .a(m_value_in),
-        .b(m_value_mps_renorm),
-        .sel(compNumBits_out),
-        .y(m_value_mps)
-    );
-
-    right_shift_3 getROMIndex (
-        .in(ivlLpsRange),
-        .out(romIndex)
-    );
-
-    mux2to1 #(3) numBitsMux (
-        .a(renormTableData),
-        .b(3'd1),
-        .sel(compPath_out),
-        .y(numBits)
-    );
-
+    assign numBits = compPath_out ? renormTableData : 3'd1;
     assign numBits_out = numBits;
 
-    mux2to1 #(BIN_WIDTH) binMux (
-        .a(inv_bin),
-        .b(bin),
-        .sel(compPath_out),
-        .y(bin_out)
-    );
+    assign bin_out = compPath_out ? inv_bin : bin;
 
 // #### LPS
-    u_subtractor #(16) subValue (
-        .a(m_value_in),
-        .b(scaledRange),
-        .result(m_value_tmp)
-    );
 
-    lefth_shifter #(.DATA_IN_WIDTH(16), .DATA_OUT_WIDTH(16)) shifter4 (
-        .data_in(m_value_tmp),
-        .shift_amount(numBits),
-        .data_out(m_value_lps)
-    );
+    assign m_value_tmp = m_value_in - scaledRange;
 
-    lefth_shifter #(.DATA_IN_WIDTH(8), .DATA_OUT_WIDTH(9)) shifter5 (
-        .data_in(ivlLpsRange),    // REVISAR - DEVERIA SER ILPSRANGE (ESTAVA RANGE_TMP)
-        .shift_amount(numBits),
-        .data_out(range_lps)
-    );
+    assign m_value_lps = m_value_tmp << numBits;
 
-    mux2to1 muxValueOut (
-        .a(m_value_lps),
-        .b(m_value_mps),
-        .sel(compPath_out),
-        .y(m_value_out)
-    );
+    assign range_lps = ivlLpsRange << numBits;
 
-    mux2to1 #(9) muxRangeOut (
-        .a(range_lps),
-        .b(range_mps),
-        .sel(compPath_out),
-        .y(m_range_out)
-    );
+    assign m_value_out = compPath_out ? m_value_lps : m_value_mps;
+
+    assign m_range_out = compPath_out ? range_lps : range_mps;
 endmodule

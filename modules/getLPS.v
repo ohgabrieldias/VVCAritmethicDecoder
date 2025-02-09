@@ -11,35 +11,16 @@ module getLPS(
     wire [15:0] add_result;
 
     // Instanciação dos módulos
-    state_xor u_state_xor (
-        .state(state),
-        .q(q)
-    );
+    assign q = (state[7]) ? ({8'b0, state} ^ 16'h00FF) : {8'b0, state};
 
-    right_shift_2 u_right_shift_2 (
-        .in(q),
-        .out(q_shifted)
-    );
+    assign q_shifted = q >> 2;
 
-    right_shift_5 u_right_shift_5 (
-        .in(range),
-        .out(range_shifted)
-    );
+    assign range_shifted = range >> 5;
 
-    multiply u_multiply (
-        .a(q_shifted),
-        .b({7'b0, range_shifted}),  // Ajuste para promover range_shifted para 16 bits
-        .result(mult_result)
-    );
+    assign mult_result = q_shifted * {7'b0, range_shifted};  // Promovendo range_shifted para 16 bits
 
-    right_shift_1 u_right_shift_1 (
-        .in(mult_result),
-        .out(add_result)
-    );
+    assign add_result = mult_result >> 1;
 
-    add_4 u_add_4 (
-        .in(add_result[7:0]),  // Seleciona os 8 bits inferiores para manter o tamanho final em 8 bits
-        .out(lps)
-    );
+    assign lps = add_result[7:0] + 4;
 
 endmodule

@@ -62,14 +62,14 @@ module tb_control #(parameter BIN_WIDTH = 4);
         reset = 0;
 
         // Open the binary input file
-        file = $fopen("D:/Dropbox/GraduacaoEC/Cadeiras/2024.2/TCC-I/VVC/VVCAritmethicDecoder/DataProcessed/control3.bin", "rb");
+        file = $fopen("C:/Users/ohgh0/Desktop/VVCAritmethicDecoder/DataProcessed/control3.bin", "rb");
         if (file == 0) begin
             $display("Error opening the file!");
             $finish;
         end
 
         // Open the text output file
-        output_file = $fopen("D:/Dropbox/GraduacaoEC/Cadeiras/2024.2/TCC-I/VVC/VVCAritmethicDecoder/Val/output.txt", "w");
+        output_file = $fopen("C:/Users/ohgh0/Desktop/VVCAritmethicDecoder/Val/output.txt", "w");
         if (output_file == 0) begin
             $display("Error opening the output file!");
             $finish;

@@ -1,10 +1,10 @@
 module bitsNeeded(
     input signed [3:0] m_bitsNeeded,
     input [2:0] numBits, // Bits para deslocamento do bitstream
-    input [1:0] nBin_in, // Bits a serem decodificados
     input bypass,
     input lps,
     input mps_renorm,
+    
     output reg request_byte,
     output reg signed [3:0] bitsNeededRB_out,
     output reg signed [3:0] bitsNeeded_out
@@ -19,14 +19,6 @@ module bitsNeeded(
     reg comp_out;
 
     always @* begin
-        // Define decremento com base em nBin_in
-        // case (nBin_in)
-        //     2'b00: muxDecrement_out = 3'd1;
-        //     2'b01: muxDecrement_out = 3'd2;
-        //     2'b10: muxDecrement_out = 3'd3;
-        //     default: muxDecrement_out = 3'd4;
-        // endcase
-
         // Seleção do valor de soma
         muxSumIndex_Out = bypass ? 1 : numBits;
 

@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module tb_control #(parameter BIN_WIDTH = 4);
+module tb_control #(parameter BIN_WIDTH = 1);
     reg clk;            // Clock signal
     reg [7:0] byte;     // Byte read from file
     reg [7:0] pState;   // Decoder state

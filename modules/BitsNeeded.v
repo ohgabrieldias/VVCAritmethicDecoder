@@ -20,15 +20,15 @@ module bitsNeeded(
 
     always @* begin
         // Define decremento com base em nBin_in
-        case (nBin_in)
-            2'b00: muxDecrement_out = 3'd1;
-            2'b01: muxDecrement_out = 3'd2;
-            2'b10: muxDecrement_out = 3'd3;
-            default: muxDecrement_out = 3'd4;
-        endcase
+        // case (nBin_in)
+        //     2'b00: muxDecrement_out = 3'd1;
+        //     2'b01: muxDecrement_out = 3'd2;
+        //     2'b10: muxDecrement_out = 3'd3;
+        //     default: muxDecrement_out = 3'd4;
+        // endcase
 
         // Seleção do valor de soma
-        muxSumIndex_Out = bypass ? muxDecrement_out : numBits;
+        muxSumIndex_Out = bypass ? 1 : numBits;
 
         // Soma de bitsNeeded com o índice apropriado
         saida_adder1 = m_bitsNeeded + muxSumIndex_Out;

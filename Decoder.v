@@ -1,4 +1,4 @@
-module Decoder #(parameter BIN_WIDTH = 4)(
+module Decoder #(parameter BIN_WIDTH = 2)(
     input clk,               // Clock
     input reset,             // Reset assíncrono
     input bypass,            // Flag para selecionar o módulo de saída
@@ -27,13 +27,9 @@ module Decoder #(parameter BIN_WIDTH = 4)(
 
     wire [16:0] m_value_shifted0;
     wire [16:0] m_value_shifted1;           // Saída intermediaria shiftada << 1
-    wire [16:0] m_value_shifted2;
-    wire [16:0] m_value_shifted3;
     
     wire [16:0] readByte0_out;
     wire [16:0] readByte1_out;           // Saída atualizada para m_value
-    wire [16:0] readByte2_out;
-    wire [16:0] readByte3_out;
 
     wire [3:0] m_bitsNeeded_out;
     wire [3:0] m_bitsNeededRB_out;
@@ -63,16 +59,12 @@ module Decoder #(parameter BIN_WIDTH = 4)(
         .m_value_bin(m_value_out_bin),
         .m_value_binEP0(m_value_shifted0),
         .m_value_binEP1(m_value_shifted1),
-        .m_value_binEP2(m_value_shifted2),
-        .m_value_binEP3(m_value_shifted3),
         .bitsNeeded(m_bitsNeededRB_out),
         .flag(request_byte),
         .bitsNeeded_sel(m_bitsNeeded),
         .m_value_binRE_out(m_value_out_tmp),
         .m_value_binEP0_out(readByte0_out),
-        .m_value_binEP1_out(readByte1_out),
-        .m_value_binEP2_out(readByte2_out),
-        .m_value_binEP3_out(readByte3_out)
+        .m_value_binEP1_out(readByte1_out)
     );
 
     DecodeBinEP #(BIN_WIDTH) decodeBinEP (
@@ -80,13 +72,9 @@ module Decoder #(parameter BIN_WIDTH = 4)(
         .m_value_in(m_value),
         .new_m_value_in0(readByte0_out),
         .new_m_value_in1(readByte1_out),
-        .new_m_value_in2(readByte2_out),
-        .new_m_value_in3(readByte3_out),
         .m_value_out(m_value_out_binEP),
         .m_value0_out(m_value_shifted0),
         .m_value1_out(m_value_shifted1),
-        .m_value2_out(m_value_shifted2),
-        .m_value3_out(m_value_shifted3),
         .bin_out(bin_out_binEP),
         .n_bin(n_bin)
     );
@@ -103,33 +91,10 @@ module Decoder #(parameter BIN_WIDTH = 4)(
         .m_value_out(m_value_out_bin)
     );
 
-    mux2to1 #(16) muxValueOutBin (
-        .a(m_value_out_tmp),
-        .b(m_value_out_bin),
-        .sel(request_byte),
-        .y(muxValueOutBin_out)
-    );
-
-    mux2to1 #(16) muxValueOut (
-        .a(m_value_out_binEP),
-        .b(muxValueOutBin_out),
-        .sel(bypass),
-        .y(m_value_out)
-    );
-
-    mux2to1 #(BIN_WIDTH) muxBinOut (
-        .a(bin_out_binEP),
-        .b(bin_out_bin),
-        .sel(bypass),
-        .y(bin)
-    );
-
-    mux2to1 #(9) muxRangeOut (
-        .a(m_range),
-        .b(m_range_out_bin),
-        .sel(bypass),
-        .y(m_range_out)
-    );
+    assign muxValueOutBin_out = request_byte ? m_value_out_tmp : m_value_out_bin;
+    assign m_value_out = bypass ? m_value_out_binEP : muxValueOutBin_out;
+    assign bin = bypass ? bin_out_binEP : bin_out_bin;
+    assign m_range_out = bypass ? m_range : m_range_out_bin;
 
     // Inicializações específicas no reset
     always @(posedge clk or posedge reset) begin

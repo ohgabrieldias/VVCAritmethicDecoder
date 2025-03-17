@@ -1,4 +1,4 @@
-module DecodeBin #(parameter BIN_WIDTH = 4)(
+module DecodeBin #(parameter BIN_WIDTH = 3)(
     input wire [8:0] m_range_in,       // Faixa de probabilidade atual
     input wire [15:0] m_value_in,      // Valor atual
     input wire [7:0] pState_in,        // Estado do modelo de probabilidade

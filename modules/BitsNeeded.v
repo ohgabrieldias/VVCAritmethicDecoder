@@ -24,7 +24,7 @@ module bitsNeeded(
             2'b00: muxDecrement_out = 3'd1;
             2'b01: muxDecrement_out = 3'd2;
             2'b10: muxDecrement_out = 3'd3;
-            default: muxDecrement_out = 3'd4;
+            default: muxDecrement_out = 3'd3;
         endcase
 
         // Seleção do valor de soma

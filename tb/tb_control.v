@@ -19,7 +19,7 @@ module tb_control #(parameter BIN_WIDTH = 3);
     wire data_ready;
     reg signed [3:0] m_bitsNeeded = -4'd8;
     reg [1:0] n_bin;          // Defines how many bins are decoded per cycle
-    reg signed [3:0] bitsNeeded_tmp;
+    reg signed [3:0] index_uptd, old_index;
 
 
     // wire para atualizacao de m_value
@@ -34,6 +34,7 @@ module tb_control #(parameter BIN_WIDTH = 3);
     wire [15:0] out_binRE;
     wire [16:0] out_binEP0, out_binEP1, out_binEP2;
     wire [2:0] numBits;
+    wire mps_renorm, lps;
 
     // Instantiate the Decoder module
     Decoder #(BIN_WIDTH) DECODER (
@@ -51,7 +52,9 @@ module tb_control #(parameter BIN_WIDTH = 3);
         .m_value_binRE_out(out_binRE),
         .m_value_binEP0_out(out_binEP0),
         .m_value_binEP1_out(out_binEP1),
-        .m_value_binEP2_out(out_binEP2)
+        .m_value_binEP2_out(out_binEP2),
+        .mps_renorm(mps_renorm),
+        .lps(lps)
     );
 
     // Instantiate the FileReader module
@@ -67,6 +70,23 @@ module tb_control #(parameter BIN_WIDTH = 3);
         count_line = 0;
         count = 0;
         clk = 0;
+        bypass_flag = 0;
+        request_byte = 0;
+
+        index_uptd = 0;
+
+        m_bitsNeeded = -4'd8;
+        old_index = 0;
+        ofst_binRE_updtd = 0;
+        ofst_binEP0_updtd = 0;
+        ofst_binEP1_updtd = 0;
+        ofst_binEP2_updtd = 0;
+
+        in_binRE = 0;
+        in_binEP0 = 0;
+        in_binEP1 = 0;
+        in_binEP2 = 0;
+        n_bin = 99;
         forever #5 clk = ~clk; // Clock with a period of 10 time units
     end
 
@@ -82,71 +102,44 @@ module tb_control #(parameter BIN_WIDTH = 3);
         ofst_binEP2_updtd = out_binEP2 + bitstream;
         ofst_binRE_updtd = out_binRE + (bitstream << numBits);
 
-        in_binRE = request_byte ? ofst_binRE_updtd : out_binRE;    
-    end
+        in_binRE = request_byte ? ofst_binRE_updtd : out_binRE;
 
-    always @(*) begin
-        if (request_byte) begin
-            if (m_bitsNeeded == -4'd1) begin
-                in_binEP0 = ofst_binEP0_updtd;
-                $display("in_binEP0 somado com bitstream = %d", in_binEP0);
-            end
-            else
-                in_binEP0 = out_binEP0;
-
-            if (m_bitsNeeded == -4'd2) begin
-                in_binEP1 = ofst_binEP1_updtd;
-                $display("in_binEP1 somado com bitstream = %d", in_binEP1);
-            end
-            else
-                in_binEP1 = out_binEP1;
-
-            if (m_bitsNeeded == -4'd3) begin
-                in_binEP2 = ofst_binEP2_updtd;
-                $display("in_binEP2 somado com bitstream = %d", in_binEP2);
-            end
-            else
-                in_binEP2 = out_binEP2;
-        end else begin
+        if (!request_byte) begin
             in_binEP0 = out_binEP0;
             in_binEP1 = out_binEP1;
             in_binEP2 = out_binEP2;
         end
     end
 
-    always @(m_bitsNeeded) begin
-        bitsNeeded_tmp = m_bitsNeeded + n_bin + 1;
+    always @(request_byte) begin
+        if (request_byte) begin
+            $display("verificando necessidade de atualizacao de m_value bn=%d", old_index);
+            if (old_index == -4'd1) begin
+                in_binEP0 = ofst_binEP0_updtd;
+                in_binEP1 = out_binEP1;
+                in_binEP2 = out_binEP2;
+                $display("in_binEP0 somado com bitstream = %d", in_binEP0);
+            end
+            if (old_index == -4'd2) begin
+                in_binEP0 = out_binEP2;
+                in_binEP1 = ofst_binEP1_updtd;
+                in_binEP2 = out_binEP2;
 
-        if (bitsNeeded_tmp >= 0) begin    // reseta o contador
-            request_byte = 1;
-            $display("bitsNeeded_tmp = %d", bitsNeeded_tmp);
-             m_bitsNeeded = bitsNeeded_tmp - 8;
-            $display("m_bitsNeeded = %d", m_bitsNeeded);
-            
-        end else begin
-            request_byte = 0;
-        end
-
-        if (m_bitsNeeded >= 0) begin
-           
+                $display("in_binEP1 somado com bitstream = %d", in_binEP1);
+            end
+            if (old_index == -4'd3) begin
+                in_binEP0 = out_binEP2;
+                in_binEP1 = out_binEP2;
+                in_binEP2 = ofst_binEP2_updtd;
+                $display("in_binEP2 somado com bitstream = %d", in_binEP2);
+            end
         end
     end
 
     initial begin
         reset = 1;
         n_bin = 1;
-        bitsNeeded_tmp = 0;
-
-        m_bitsNeeded = -4'd8;
-        ofst_binRE_updtd = 0;
-        ofst_binEP0_updtd = 0;
-        ofst_binEP1_updtd = 0;
-        ofst_binEP2_updtd = 0;
-
-        in_binRE = 0;
-        in_binEP0 = 0;
-        in_binEP1 = 0;
-        in_binEP2 = 0;
+       
         #7; 
         reset = 0;
 
@@ -189,7 +182,16 @@ module tb_control #(parameter BIN_WIDTH = 3);
             // Espera até que o número de bins decodificados seja igual a numBins
             while (count < numBins) begin
                 @(posedge clk);
-                m_bitsNeeded = m_bitsNeeded + n_bin + 1; //flag esta levando 1 ciclo a mais para ser setada
+                old_index = index_uptd;
+                index_uptd = m_bitsNeeded + n_bin + 1;
+
+                if (index_uptd >= 0) begin    // reseta o contador
+                    request_byte = 1;
+                    m_bitsNeeded = index_uptd - 8;
+                end else begin
+                    request_byte = 0;
+                    m_bitsNeeded = index_uptd;
+                end
                 
                 if (bypass_flag) begin
                     count = count + n_bin + 1;

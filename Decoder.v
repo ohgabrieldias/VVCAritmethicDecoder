@@ -11,11 +11,14 @@ module Decoder #(parameter BIN_WIDTH = 3)(
     input [16:0] m_value_binEP2_in,
 
     output wire [BIN_WIDTH - 1:0] bin,   // Saída do bit decodificado do BinDecoderBase
-    output wire [2:0] numBits,                 // Deslocamento do bitstream obtido pelo ROM
     output wire [15:0] m_value_binRE_out,     //revisar!!!!!!!
     output wire [16:0] m_value_binEP0_out,
     output wire [16:0] m_value_binEP1_out,
-    output wire [16:0] m_value_binEP2_out
+    output wire [16:0] m_value_binEP2_out,
+
+    output wire [2:0] numBits,                 // Deslocamento do bitstream obtido pelo ROM
+    output wire mps_renorm,
+    output wire lps
 );
 
 // ######################## REGISTERS ########################
@@ -33,10 +36,7 @@ module Decoder #(parameter BIN_WIDTH = 3)(
     wire [15:0] m_value_out;              // Saída atualizada para m_value
 
     wire [8:0] m_range_out_bin;              // Saída atualizada para m_range
-    wire [8:0] m_range_out;              // Saída atualizada para m_range
-
-    wire lps, mps_renorm;
-    // wire [2:0] numBits;   // Deslocamento do bitstream obtido pelo ROM      
+    wire [8:0] m_range_out;              // Saída atualizada para m_range     
 
 // ######################## INSTANCES ########################
 

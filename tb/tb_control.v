@@ -111,31 +111,6 @@ module tb_control #(parameter BIN_WIDTH = 3);
         end
     end
 
-    always @(request_byte) begin
-        if (request_byte) begin
-            $display("verificando necessidade de atualizacao de m_value bn=%d", old_index);
-            if (old_index == -4'd1) begin
-                in_binEP0 = ofst_binEP0_updtd;
-                in_binEP1 = out_binEP1;
-                in_binEP2 = out_binEP2;
-                $display("in_binEP0 somado com bitstream = %d", in_binEP0);
-            end
-            if (old_index == -4'd2) begin
-                in_binEP0 = out_binEP2;
-                in_binEP1 = ofst_binEP1_updtd;
-                in_binEP2 = out_binEP2;
-
-                $display("in_binEP1 somado com bitstream = %d", in_binEP1);
-            end
-            if (old_index == -4'd3) begin
-                in_binEP0 = out_binEP2;
-                in_binEP1 = out_binEP2;
-                in_binEP2 = ofst_binEP2_updtd;
-                $display("in_binEP2 somado com bitstream = %d", in_binEP2);
-            end
-        end
-    end
-
     initial begin
         reset = 1;
         n_bin = 1;
@@ -181,23 +156,37 @@ module tb_control #(parameter BIN_WIDTH = 3);
 
             // Espera até que o número de bins decodificados seja igual a numBins
             while (count < numBins) begin
-                @(posedge clk);
-                old_index = index_uptd;
-                index_uptd = m_bitsNeeded + n_bin + 1;
-
-                if (index_uptd >= 0) begin    // reseta o contador
-                    request_byte = 1;
-                    m_bitsNeeded = index_uptd - 8;
-                end else begin
-                    request_byte = 0;
-                    m_bitsNeeded = index_uptd;
-                end
+                @(posedge clk);               
                 
                 if (bypass_flag) begin
+                    old_index = index_uptd;
+                    index_uptd = m_bitsNeeded + n_bin + 1;
+
+                    if (index_uptd >= 0) begin    // reseta o contador
+                        request_byte = 1;
+                        m_bitsNeeded = index_uptd - 8;
+                    end else begin
+                        request_byte = 0;
+                        m_bitsNeeded = index_uptd;
+                    end
                     count = count + n_bin + 1;
                     // $display("Modo bypass com byte par: contador incrementado por %d, contador atual = %d",n_bin + 1, count);
-                end else begin
-                    // Modo regular, incrementa por 1
+                end else begin // REGULAR MODE
+                    old_index = m_bitsNeeded;
+                    index_uptd = m_bitsNeeded + numBins;
+
+                    if((~lps & ~mps_renorm) | lps == 1) begin
+                        if (index_uptd >= 0) begin    // reseta o contador
+                            request_byte = 1;
+                            m_bitsNeeded = index_uptd - 8;
+                        end else begin
+                            request_byte = 0;
+                            m_bitsNeeded = index_uptd;
+                        end
+                    end
+                    else begin
+                        m_bitsNeeded = old_index;
+                    end
                     count = count + 1;
                     // $display("Modo regular: contador incrementado por 1, contador atual = %d", count);
                 end
@@ -213,6 +202,32 @@ module tb_control #(parameter BIN_WIDTH = 3);
                         // $display("Gravando bin_out[%d] = %b", i, bin_out[i]);
                     end
                 end
+
+                in_binEP0 = (request_byte && (old_index == -4'd1)) ? ofst_binEP0_updtd : out_binEP0;
+                in_binEP1 = (request_byte && (old_index == -4'd2)) ? ofst_binEP1_updtd : out_binEP1;
+                in_binEP2 = (request_byte && (old_index == -4'd3)) ? ofst_binEP2_updtd : out_binEP2;
+                // if (request_byte) begin
+                //     $display("verificando  old=%d e ind%d", old_index,m_bitsNeeded);
+                //     if (old_index == -4'd1) begin
+                //         in_binEP0 = ofst_binEP0_updtd;
+                //         in_binEP1 = out_binEP1;
+                //         in_binEP2 = out_binEP2;
+                //         $display("in_binEP0 somado com bitstream = %d", in_binEP0);
+                //     end
+                //     if (old_index == -4'd2) begin
+                //         in_binEP0 = out_binEP0;
+                //         in_binEP1 = ofst_binEP1_updtd;
+                //         in_binEP2 = out_binEP2;
+
+                //         $display("in_binEP1 somado com bitstream = %d", in_binEP1);
+                //     end
+                //     if (old_index == -4'd3) begin
+                //         in_binEP0 = out_binEP0;
+                //         in_binEP1 = out_binEP1;
+                //         in_binEP2 = ofst_binEP2_updtd;
+                //         $display("in_binEP2 somado com bitstream = %d", in_binEP2);
+                //     end
+                // end
             end
 
             // Zerar o contador quando atingir numBins

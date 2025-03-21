@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module tb_control #(parameter BIN_WIDTH = 3);
+module tb_control #(parameter BIN_WIDTH = 2);
     reg clk;            // Clock signal
     reg [7:0] byte;     // Byte read from control_file
     reg [7:0] pState;   // Decoder state
@@ -26,14 +26,13 @@ module tb_control #(parameter BIN_WIDTH = 3);
     // wire para atualizacao de m_value
     reg [15:0] ofst_binRE_updtd;
     reg [16:0] ofst_binEP0_updtd;
-    reg [16:0] ofst_binEP1_updtd;
-    reg [16:0] ofst_binEP2_updtd;      
+    reg [16:0] ofst_binEP1_updtd;     
 
     reg [15:0] in_binRE;
-    reg [16:0] in_binEP0, in_binEP1, in_binEP2;
+    reg [16:0] in_binEP0, in_binEP1;
 
     wire [15:0] out_binRE;
-    wire [16:0] out_binEP0, out_binEP1, out_binEP2;
+    wire [16:0] out_binEP0, out_binEP1;
     wire [2:0] numBits;
     wire mps_renorm, lps;
 
@@ -49,11 +48,9 @@ module tb_control #(parameter BIN_WIDTH = 3);
         .m_value_binRE_in(in_binRE),
         .m_value_binEP0_in(in_binEP0),
         .m_value_binEP1_in(in_binEP1),
-        .m_value_binEP2_in(in_binEP2),
         .m_value_binRE_out(out_binRE),
         .m_value_binEP0_out(out_binEP0),
         .m_value_binEP1_out(out_binEP1),
-        .m_value_binEP2_out(out_binEP2),
         .mps_renorm(mps_renorm),
         .lps(lps)
     );
@@ -82,12 +79,10 @@ module tb_control #(parameter BIN_WIDTH = 3);
         ofst_binRE_updtd = 0;
         ofst_binEP0_updtd = 0;
         ofst_binEP1_updtd = 0;
-        ofst_binEP2_updtd = 0;
 
         in_binRE = 0;
         in_binEP0 = 0;
         in_binEP1 = 0;
-        in_binEP2 = 0;
         n_bin = 99;
         forever #5 clk = ~clk; // Clock with a period of 10 time units
     end
@@ -115,12 +110,10 @@ module tb_control #(parameter BIN_WIDTH = 3);
 
         ofst_binEP0_updtd = out_binEP0 + bitstream;
         ofst_binEP1_updtd = out_binEP1 + bitstream;
-        ofst_binEP2_updtd = out_binEP2 + bitstream;
         ofst_binRE_updtd = out_binRE + (bitstream << index_sumed);
 
         in_binEP0 = (request_byte && (m_bitsNeeded == -4'd1)) ? ofst_binEP0_updtd : out_binEP0;
         in_binEP1 = (request_byte && (m_bitsNeeded == -4'd2)) ? ofst_binEP1_updtd : out_binEP1;
-        in_binEP2 = (request_byte && (m_bitsNeeded == -4'd3)) ? ofst_binEP2_updtd : out_binEP2;
         in_binRE = request_byte ? ofst_binRE_updtd : out_binRE;
     end
 

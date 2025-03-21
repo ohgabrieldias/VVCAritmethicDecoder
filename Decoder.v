@@ -1,18 +1,15 @@
-module Decoder #(parameter BIN_WIDTH = 2)(
+module Decoder #(parameter BIN_WIDTH = 1)(
     input clk,               // Clock
     input reset,             // Reset assíncrono
     input bypass,            // Flag para selecionar o módulo de saída
     input [7:0] pState_in,   // Estado do codificador
-    input [1:0] n_bin,             // Número de bins a serem decodificados por ciclo
 
     input [15:0] m_value_binRE_in,
     input [16:0] m_value_binEP0_in,
-    input [16:0] m_value_binEP1_in,
 
     output wire [BIN_WIDTH - 1:0] bin,   // Saída do bit decodificado do BinDecoderBase
     output wire [15:0] m_value_binRE_out,     //revisar!!!!!!!
     output wire [16:0] m_value_binEP0_out,
-    output wire [16:0] m_value_binEP1_out,
 
     output wire [2:0] numBits,                 // Deslocamento do bitstream obtido pelo ROM
     output wire mps_renorm,
@@ -34,17 +31,13 @@ module Decoder #(parameter BIN_WIDTH = 2)(
     wire [8:0] m_range_out;              // Saída atualizada para m_range     
 
 // ######################## INSTANCES ########################
-
     DecodeBinEP #(BIN_WIDTH) decodeBinEP (
         .m_range(m_range),
         .m_value_in(m_value),
         .new_m_value_in0(m_value_binEP0_in),
-        .new_m_value_in1(m_value_binEP1_in),
         .m_value_out(m_value_out_binEP),
         .m_value0_out(m_value_binEP0_out),
-        .m_value1_out(m_value_binEP1_out),
-        .bin_out(bin_out_binEP),
-        .n_bin(n_bin)
+        .bin_out(bin_out_binEP)
     );
 
     DecodeBin #(BIN_WIDTH) decodeBin (

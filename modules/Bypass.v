@@ -66,8 +66,8 @@ module DecodeBinEP #(parameter BIN_WIDTH = 3)(
         endcase
 
         case (n_bin)
-            2'b00: bin_out = {3'b00, bin_out1};
-            2'b01: bin_out = {2'b0, bin_out2, bin_out1};
+            2'b00: bin_out = {2'b00, bin_out1};
+            2'b01: bin_out = {1'b0, bin_out2, bin_out1};
             2'b10: bin_out = {bin_out3, bin_out2, bin_out1};
         endcase
     end

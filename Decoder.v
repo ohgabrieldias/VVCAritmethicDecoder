@@ -29,12 +29,9 @@ module Decoder #(parameter BIN_WIDTH = 3)(
     wire [BIN_WIDTH - 1:0] bin_out_binEP;
     wire [BIN_WIDTH - 1:0] bin_out_bin;
     
-    wire [15:0] m_value_out_bin;              // Saída atualizada para m_value
     wire [15:0] m_value_out_binEP;           // Saída intermediaria shiftada << 1
-    wire [15:0] muxValueOutBin_out;              // Saída atualizada para m_value
-
     wire [15:0] m_value_out;              // Saída atualizada para m_value
-
+    
     wire [8:0] m_range_out_bin;              // Saída atualizada para m_range
     wire [8:0] m_range_out;              // Saída atualizada para m_range     
 
@@ -66,11 +63,9 @@ module Decoder #(parameter BIN_WIDTH = 3)(
         .m_value_out(m_value_binRE_out)
     );
 
-    // assign muxValueOutBin_out = request_byte ? m_value_binRE_in : m_value_out_bin;
     assign m_value_out = bypass ? m_value_out_binEP : m_value_binRE_in;
     assign bin = bypass ? bin_out_binEP : bin_out_bin;
     assign m_range_out = bypass ? m_range : m_range_out_bin;
-    // assign m_value_binRE_out = m_value_out;
 
     // Inicializações específicas no reset
     always @(posedge clk or posedge reset) begin

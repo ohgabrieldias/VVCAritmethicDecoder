@@ -2,7 +2,7 @@
 
 module tb_control #(parameter BIN_WIDTH = 3);
     reg clk;            // Clock signal
-    reg [7:0] byte;     // Byte read from file
+    reg [7:0] byte;     // Byte read from control_file
     reg [7:0] pState;   // Decoder state
     reg [6:0] numBins;  // Number of bins to decode
     reg [6:0] count;    // Clock cycle counter
@@ -11,16 +11,17 @@ module tb_control #(parameter BIN_WIDTH = 3);
     reg reset;          // Reset signal
     wire [BIN_WIDTH - 1:0] bin_out; // Output of the BinDecoderBase module
     reg request_byte;  // Signal to increment the request
-    integer file;       // File handle for input
+    integer control_file;       // File handle for input
     integer output_file; // File handle for output
-    integer r;          // Variable for file read
+    integer r;          // Variable for control_file read
     integer i;
     wire [7:0] bitstream;
     wire data_ready;
-    reg signed [3:0] m_bitsNeeded = -4'd8;
+    reg signed [3:0] m_bitsNeeded;
     reg [1:0] n_bin;          // Defines how many bins are decoded per cycle
-    reg signed [3:0] index_uptd, old_index;
-
+    reg [2:0] opnd_sum;
+    reg signed [3:0] index_sumed, index_rst, index_bypass, index_reg, index_out;
+    reg index_comp, sel_index_reg;
 
     // wire para atualizacao de m_value
     reg [15:0] ofst_binRE_updtd;
@@ -71,12 +72,13 @@ module tb_control #(parameter BIN_WIDTH = 3);
         count = 0;
         clk = 0;
         bypass_flag = 0;
-        request_byte = 0;
-
-        index_uptd = 0;
-
+        request_byte <= 0;
+        index_out = 0;
+        opnd_sum = 0;
+        index_sumed = 0;
+        index_rst = 0;
         m_bitsNeeded = -4'd8;
-        old_index = 0;
+
         ofst_binRE_updtd = 0;
         ofst_binEP0_updtd = 0;
         ofst_binEP1_updtd = 0;
@@ -90,25 +92,36 @@ module tb_control #(parameter BIN_WIDTH = 3);
         forever #5 clk = ~clk; // Clock with a period of 10 time units
     end
 
-    always @(*) begin
+    always @* begin
         if (numBins - count <= BIN_WIDTH) begin
             n_bin = (numBins - count) - 1; // Processa o que falta (1, 2, 3 ou 4)
         end else begin
             n_bin = BIN_WIDTH - 1; // Processa 4 bins (capacidade máxima)
         end
 
+        opnd_sum = bypass_flag ? (n_bin + 1) : numBits;
+        index_sumed = m_bitsNeeded + opnd_sum;
+        index_comp = (index_sumed >= 0);
+        index_rst = index_sumed - 8;
+
+        sel_index_reg = (~lps & ~mps_renorm) | lps;
+        
+        index_bypass = index_comp ? index_rst : index_sumed;
+        index_reg = sel_index_reg ? index_bypass : m_bitsNeeded;
+
+        index_out = bypass_flag ? index_bypass : index_reg;
+
+        request_byte = (~bypass_flag & ~sel_index_reg) ? 0 : index_comp;
+
         ofst_binEP0_updtd = out_binEP0 + bitstream;
         ofst_binEP1_updtd = out_binEP1 + bitstream;
         ofst_binEP2_updtd = out_binEP2 + bitstream;
-        ofst_binRE_updtd = out_binRE + (bitstream << numBits);
+        ofst_binRE_updtd = out_binRE + (bitstream << index_sumed);
 
+        in_binEP0 = (request_byte && (m_bitsNeeded == -4'd1)) ? ofst_binEP0_updtd : out_binEP0;
+        in_binEP1 = (request_byte && (m_bitsNeeded == -4'd2)) ? ofst_binEP1_updtd : out_binEP1;
+        in_binEP2 = (request_byte && (m_bitsNeeded == -4'd3)) ? ofst_binEP2_updtd : out_binEP2;
         in_binRE = request_byte ? ofst_binRE_updtd : out_binRE;
-
-        if (!request_byte) begin
-            in_binEP0 = out_binEP0;
-            in_binEP1 = out_binEP1;
-            in_binEP2 = out_binEP2;
-        end
     end
 
     initial begin
@@ -118,24 +131,24 @@ module tb_control #(parameter BIN_WIDTH = 3);
         #7; 
         reset = 0;
 
-        // Open the binary input file
-        file = $fopen("C:/Users/ohgh0/Desktop/VVCAritmethicDecoder/DataProcessed/control3.bin", "rb");
-        if (file == 0) begin
-            $display("Error opening the file!");
+        // Open the binary input control_file
+        control_file = $fopen("C:/Users/ohgh0/Desktop/VVCAritmethicDecoder/DataProcessed/control3.bin", "rb");
+        if (control_file == 0) begin
+            $display("Error opening the control_file!");
             $finish;
         end
 
-        // Open the text output file
+        // Open the text output control_file
         output_file = $fopen("C:/Users/ohgh0/Desktop/VVCAritmethicDecoder/Val/output.txt", "w");
         if (output_file == 0) begin
-            $display("Error opening the output file!");
+            $display("Error opening the output control_file!");
             $finish;
         end
 
         // File reading loop
-        while (!$feof(file)) begin
+        while (!$feof(control_file)) begin
             // Read the first byte and store in pState
-            r = $fread(byte, file);
+            r = $fread(byte, control_file);
             if (r != 1) begin
                 $display("Error reading the byte!");
                 $finish;
@@ -144,7 +157,7 @@ module tb_control #(parameter BIN_WIDTH = 3);
             count_line = count_line + 1;
 
             // Read the second byte
-            r = $fread(byte, file);
+            r = $fread(byte, control_file);
             if (r != 1) begin
                 $display("Error reading the second byte!");
                 $finish;
@@ -157,36 +170,11 @@ module tb_control #(parameter BIN_WIDTH = 3);
             // Espera até que o número de bins decodificados seja igual a numBins
             while (count < numBins) begin
                 @(posedge clk);               
-                
-                if (bypass_flag) begin
-                    old_index = index_uptd;
-                    index_uptd = m_bitsNeeded + n_bin + 1;
-
-                    if (index_uptd >= 0) begin    // reseta o contador
-                        request_byte = 1;
-                        m_bitsNeeded = index_uptd - 8;
-                    end else begin
-                        request_byte = 0;
-                        m_bitsNeeded = index_uptd;
-                    end
+                m_bitsNeeded <= index_out;
+                if (bypass_flag) begin // BYPASS MODE
                     count = count + n_bin + 1;
                     // $display("Modo bypass com byte par: contador incrementado por %d, contador atual = %d",n_bin + 1, count);
                 end else begin // REGULAR MODE
-                    old_index = m_bitsNeeded;
-                    index_uptd = m_bitsNeeded + numBins;
-
-                    if((~lps & ~mps_renorm) | lps == 1) begin
-                        if (index_uptd >= 0) begin    // reseta o contador
-                            request_byte = 1;
-                            m_bitsNeeded = index_uptd - 8;
-                        end else begin
-                            request_byte = 0;
-                            m_bitsNeeded = index_uptd;
-                        end
-                    end
-                    else begin
-                        m_bitsNeeded = old_index;
-                    end
                     count = count + 1;
                     // $display("Modo regular: contador incrementado por 1, contador atual = %d", count);
                 end
@@ -202,32 +190,6 @@ module tb_control #(parameter BIN_WIDTH = 3);
                         // $display("Gravando bin_out[%d] = %b", i, bin_out[i]);
                     end
                 end
-
-                in_binEP0 = (request_byte && (old_index == -4'd1)) ? ofst_binEP0_updtd : out_binEP0;
-                in_binEP1 = (request_byte && (old_index == -4'd2)) ? ofst_binEP1_updtd : out_binEP1;
-                in_binEP2 = (request_byte && (old_index == -4'd3)) ? ofst_binEP2_updtd : out_binEP2;
-                // if (request_byte) begin
-                //     $display("verificando  old=%d e ind%d", old_index,m_bitsNeeded);
-                //     if (old_index == -4'd1) begin
-                //         in_binEP0 = ofst_binEP0_updtd;
-                //         in_binEP1 = out_binEP1;
-                //         in_binEP2 = out_binEP2;
-                //         $display("in_binEP0 somado com bitstream = %d", in_binEP0);
-                //     end
-                //     if (old_index == -4'd2) begin
-                //         in_binEP0 = out_binEP0;
-                //         in_binEP1 = ofst_binEP1_updtd;
-                //         in_binEP2 = out_binEP2;
-
-                //         $display("in_binEP1 somado com bitstream = %d", in_binEP1);
-                //     end
-                //     if (old_index == -4'd3) begin
-                //         in_binEP0 = out_binEP0;
-                //         in_binEP1 = out_binEP1;
-                //         in_binEP2 = ofst_binEP2_updtd;
-                //         $display("in_binEP2 somado com bitstream = %d", in_binEP2);
-                //     end
-                // end
             end
 
             // Zerar o contador quando atingir numBins
@@ -238,7 +200,7 @@ module tb_control #(parameter BIN_WIDTH = 3);
         end
 
         // Close the files
-        $fclose(file);
+        $fclose(control_file);
         $fclose(output_file);
         $display("File reading completed.");
         $finish;

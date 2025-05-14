@@ -1,25 +1,78 @@
 import os
+import subprocess
 
-# Caminho base onde estão os arquivos
-base_path_in = "/home/dias/Dropbox/GraduacaoEC/Cadeiras/2024.2/TCC-I/VVC/VVCSoftware_VTM/bin"
-base_path_out = "/home/dias/Área de trabalho/VVCAritmethicDecoder/DataProcessed/Throughput/"
+# Caminho base dos arquivos
+base_path = "/home/dias/TCCII/analysis"
+vtm_dir = "/home/dias/Dropbox/GraduacaoEC/Cadeiras/2024.2/TCC-I/VVC/VVCSoftware_VTM"
+decoder_path = f"{vtm_dir}/bin/DecoderAppStatic"
 
-# Sequências e valores de QP disponíveis
+# Sequências e valores de QP
 # sequences = ["BQTerrace", "CatRobot", "FourPeople", "PartyScene", "Tango2"]
-sequences = ["BQTerrace", "CatRobot", "PartyScene", "Tango2"]
-cfg_type = "randomaccess"
+
+sequences = [
+    "Tango2",               # Class A1
+    "FoodMarket4",          # Class A1
+    "Campfire",             # Class A1
+    "CatRobot",             # Class A2
+    "DaylightRoad2",        # Class A2
+    "ParkRunning3",         # Class A2
+    "MarketPlace",          # Class B
+    "RitualDance",          # Class B
+    "Cactus",               # Class B
+    "BasketballDrive",      # Class B
+    "BQTerrace",            # Class B
+    "RaceHorsesC",          # Class C
+    "BQMall",               # Class C
+    "PartyScene",           # Class C
+    "BasketballDrill",      # Class C
+    "RaceHorses",           # Class D
+    "BQSquare",             # Class D
+    "BlowingBubbles",       # Class D
+    "BasketballPass",       # Class D
+    "FourPeople",           # Class E
+    "Johnny",               # Class E
+    "KristenAndSara",       # Class E
+    "BasketballDrillText",  # Class F
+    "ChinaSpeed",           # Class F
+    "SlideEditing",         # Class F
+    "SlideShow"             # Class F
+]
 qp_values = [22, 27, 32, 37]
+# cfg_type = "randomaccess"
+cfg_type = "lowdelay"
+# cfg_type = "intra"
+
+# Loop para executar o DecoderAppStatic para cada sequência e cada QP
+for seq in sequences:
+    decoded_dir = os.path.join(base_path, seq, "Decoded", cfg_type)  # Garante que a pasta Decoded existe
+    # print("\nDecoder directory:", decoded_dir)
+    os.makedirs(decoded_dir, exist_ok=True)  # Garante que a pasta Decoded existe
+    
+    for qp in qp_values:
+        recon_file = os.path.join(base_path, seq, "Encoded", cfg_type, f"ReconFile_{qp}.yuv")
+        bitstream_file = os.path.join(base_path, seq, "Encoded", cfg_type, f"BitstreamFile_{qp}.bin")
+        output_log = os.path.join(decoded_dir, f"Dec-QP{qp}.txt")
+        print(f"Decodificando {seq} QP{qp}...")
+        # os.makedirs(os.path.dirname(output_log), exist_ok=True)  # Garante que a subpasta existe
+        
+        with open(output_log, "w") as log_file:
+            subprocess.run([decoder_path, "-o", recon_file, "-b", bitstream_file], stdout=log_file)
+
+print("Decodificação concluída!")
 
 # Gerando os caminhos dinamicamente
 input_files = [f"{seq}/Decoded/{cfg_type}/Dec-QP{qp}.txt" for seq in sequences for qp in qp_values]
-output_files = [f"{seq}/{cfg_type}/QP{qp}.txt" for seq in sequences for qp in qp_values]
+output_files = [f"{seq}/Throughput/{cfg_type}/QP{qp}.txt" for seq in sequences for qp in qp_values]
 
-report_file = os.path.join(base_path_out, f"Relatorio_{cfg_type}.txt")
+report_file = os.path.join(base_path, f"Relatorio_{cfg_type}.txt")
 report_data = []
 
 def process_file(input_file, output_file):
-    input_path = os.path.join(base_path_in, input_file)
-    output_path = os.path.join(base_path_out, output_file)
+    input_path = os.path.join(base_path, input_file)
+    output_path = os.path.join(base_path, output_file)
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)  # Garante que a subpasta existe
+    # print(f"Processando {input_path} -> {output_path}")
 
     with open(input_path, "r") as infile, open(output_path, "w") as outfile:
         # Cabeçalhos da tabela
@@ -109,7 +162,7 @@ def process_file(input_file, output_file):
 # Processar todos os arquivos na lista
 for input_file, output_file in zip(input_files, output_files):
     process_file(input_file, output_file)
-    print(f"Processado: {input_file} -> {output_file}")
+    print(f"Extraindo vazao: {input_file} -> {output_file}")
 
 with open(report_file, "w") as rep_file:
     rep_file.write(f"{'% Regular':<10} | {'% Bypass':<10} | {'(AD_2xEP_1xRE)':<11} | {'(AD_3xEP_1xRE)':<11} | {'(AD_4xEP_1xRE)':<11}\n")

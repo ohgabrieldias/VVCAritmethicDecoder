@@ -2,8 +2,8 @@ import subprocess
 import os
 import time
 
-vtm_dir = "/home/dias/Dropbox/GraduacaoEC/Cadeiras/2024.2/TCC-I/VVC/VVCSoftware_VTM"
-base_path = "/home/dias/TCCII/analysis"
+vtm_dir = "/VVCSoftware_VTM"
+base_path = "/analysis"
 encoder_path = f"{vtm_dir}/bin/EncoderAppStatic"
 # Lista das sequências de vídeo
 sequences = [

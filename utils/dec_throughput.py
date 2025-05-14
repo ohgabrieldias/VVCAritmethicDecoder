@@ -2,8 +2,8 @@ import os
 import subprocess
 
 # Caminho base dos arquivos
-base_path = "/home/dias/TCCII/analysis"
-vtm_dir = "/home/dias/Dropbox/GraduacaoEC/Cadeiras/2024.2/TCC-I/VVC/VVCSoftware_VTM"
+base_path = "/analysis"
+vtm_dir = "/VVCSoftware_VTM"
 decoder_path = f"{vtm_dir}/bin/DecoderAppStatic"
 
 # Sequências e valores de QP

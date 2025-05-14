@@ -103,33 +103,10 @@ module Decoder #(parameter BIN_WIDTH = 4)(
         .m_value_out(m_value_out_bin)
     );
 
-    mux2to1 #(16) muxValueOutBin (
-        .a(m_value_out_tmp),
-        .b(m_value_out_bin),
-        .sel(request_byte),
-        .y(muxValueOutBin_out)
-    );
-
-    mux2to1 #(16) muxValueOut (
-        .a(m_value_out_binEP),
-        .b(muxValueOutBin_out),
-        .sel(bypass),
-        .y(m_value_out)
-    );
-
-    mux2to1 #(BIN_WIDTH) muxBinOut (
-        .a(bin_out_binEP),
-        .b(bin_out_bin),
-        .sel(bypass),
-        .y(bin)
-    );
-
-    mux2to1 #(9) muxRangeOut (
-        .a(m_range),
-        .b(m_range_out_bin),
-        .sel(bypass),
-        .y(m_range_out)
-    );
+    assign muxValueOutBin_out = request_byte ? m_value_out_tmp : m_value_out_bin;
+    assign m_value_out = bypass ? m_value_out_binEP : muxValueOutBin_out;
+    assign bin = bypass ? bin_out_binEP : bin_out_bin;
+    assign m_range_out = bypass ? m_range : m_range_out_bin;
 
     // Inicializações específicas no reset
     always @(posedge clk or posedge reset) begin
